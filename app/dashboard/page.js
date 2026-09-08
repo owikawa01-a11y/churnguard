@@ -142,48 +142,50 @@ export default function Dashboard() {
         </div>
 
         {/* بطاقات الإحصائيات */}
-        <div className="grid grid-cols-1 sm:grid-cols-3 gap-5 mb-8">
-          <div className="bg-gradient-to-br from-slate-800/50 to-slate-900/80 backdrop-blur-xl border border-slate-700/50 rounded-2xl p-6 shadow-xl shadow-black/20 hover:border-indigo-500/30 transition-all duration-300 group">
-            <div className="flex justify-between items-start">
-              <div>
-                <p className="text-slate-400 text-xs uppercase tracking-wider font-semibold">Total Cancellations</p>
-                <p className="text-4xl font-extrabold text-white mt-2 group-hover:text-indigo-300 transition-colors">{events.length}</p>
-              </div>
-              <div className="p-3 bg-indigo-500/10 rounded-xl border border-indigo-500/20">
-                <span className="text-xl">📉</span>
-              </div>
-            </div>
-          </div>
+       <div className="grid grid-cols-1 sm:grid-cols-3 gap-5 mb-8">
+  {/* الكارت الأول */}
+  <div className="animate-fade-in-up-delay-1 bg-gradient-to-br from-slate-800/50 to-slate-900/80 backdrop-blur-xl border border-slate-700/50 rounded-2xl p-6 shadow-xl shadow-black/20 hover:border-cyan-500/50 transition-all duration-500 hover:scale-[1.02] group">
+    <div className="flex justify-between items-start">
+      <div>
+        <p className="text-slate-400 text-xs uppercase tracking-wider font-semibold">Total Cancellations</p>
+        <p className="text-4xl font-extrabold text-white mt-2 group-hover:text-cyan-300 transition-colors">{events.length}</p>
+      </div>
+      <div className="p-3 bg-cyan-500/10 rounded-xl border border-cyan-500/20">
+        <span className="text-xl">📉</span>
+      </div>
+    </div>
+  </div>
 
-          <div className="bg-gradient-to-br from-slate-800/50 to-slate-900/80 backdrop-blur-xl border border-slate-700/50 rounded-2xl p-6 shadow-xl shadow-black/20 hover:border-purple-500/30 transition-all duration-300 group">
-            <div className="flex justify-between items-start">
-              <div>
-                <p className="text-slate-400 text-xs uppercase tracking-wider font-semibold">Today</p>
-                <p className="text-4xl font-extrabold text-white mt-2 group-hover:text-purple-300 transition-colors">
-                  {events.filter(e => new Date(e.created_at).toDateString() === new Date().toDateString()).length}
-                </p>
-              </div>
-              <div className="p-3 bg-purple-500/10 rounded-xl border border-purple-500/20">
-                <span className="text-xl">📅</span>
-              </div>
-            </div>
-          </div>
+  {/* الكارت التاني */}
+  <div className="animate-fade-in-up-delay-2 bg-gradient-to-br from-slate-800/50 to-slate-900/80 backdrop-blur-xl border border-slate-700/50 rounded-2xl p-6 shadow-xl shadow-black/20 hover:border-purple-500/50 transition-all duration-500 hover:scale-[1.02] group">
+    <div className="flex justify-between items-start">
+      <div>
+        <p className="text-slate-400 text-xs uppercase tracking-wider font-semibold">Today</p>
+        <p className="text-4xl font-extrabold text-white mt-2 group-hover:text-purple-300 transition-colors">
+          {events.filter(e => new Date(e.created_at).toDateString() === new Date().toDateString()).length}
+        </p>
+      </div>
+      <div className="p-3 bg-purple-500/10 rounded-xl border border-purple-500/20">
+        <span className="text-xl">📅</span>
+      </div>
+    </div>
+  </div>
 
-          <div className="bg-gradient-to-br from-slate-800/50 to-slate-900/80 backdrop-blur-xl border border-slate-700/50 rounded-2xl p-6 shadow-xl shadow-black/20 hover:border-emerald-500/30 transition-all duration-300 group">
-            <div className="flex justify-between items-start">
-              <div>
-                <p className="text-slate-400 text-xs uppercase tracking-wider font-semibold">Your Public Key</p>
-                <p className="text-xs font-mono text-emerald-300 mt-2 truncate max-w-[150px] sm:max-w-[200px] bg-black/30 px-2 py-1 rounded border border-emerald-500/20">
-                  {publicKey || 'N/A'}
-                </p>
-              </div>
-              <div className="p-3 bg-emerald-500/10 rounded-xl border border-emerald-500/20">
-                <span className="text-xl">🔑</span>
-              </div>
-            </div>
-          </div>
-        </div>
-
+  {/* الكارت التالت */}
+  <div className="animate-fade-in-up-delay-3 bg-gradient-to-br from-slate-800/50 to-slate-900/80 backdrop-blur-xl border border-slate-700/50 rounded-2xl p-6 shadow-xl shadow-black/20 hover:border-emerald-500/50 transition-all duration-500 hover:scale-[1.02] group">
+    <div className="flex justify-between items-start">
+      <div>
+        <p className="text-slate-400 text-xs uppercase tracking-wider font-semibold">Your Public Key</p>
+        <p className="text-xs font-mono text-emerald-300 mt-2 truncate max-w-[150px] sm:max-w-[200px] bg-black/30 px-2 py-1 rounded border border-emerald-500/20">
+          {publicKey || 'N/A'}
+        </p>
+      </div>
+      <div className="p-3 bg-emerald-500/10 rounded-xl border border-emerald-500/20">
+        <span className="text-xl">🔑</span>
+      </div>
+    </div>
+  </div>
+</div>
         {/* جدول الأسباب */}
         <div className="bg-gradient-to-br from-slate-800/40 to-slate-900/60 backdrop-blur-xl border border-slate-700/50 rounded-2xl p-6 shadow-2xl shadow-black/30">
           <div className="flex items-center justify-between mb-6">

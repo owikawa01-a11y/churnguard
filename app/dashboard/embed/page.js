@@ -67,7 +67,7 @@ export default function EmbedPage() {
     cancelUrl: "/cancel" // الـ URL اللي هيتحول له الزبون بعد الإلغاء
   };
 </script>
-<script src="https://yourdomain.com/widget.js" async></script>
+<script src="https://churnguard.vercel.app/widget.js" async></script>
 <!-- End ChurnGuard Widget -->`;
   };
 
