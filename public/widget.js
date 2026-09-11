@@ -5,20 +5,23 @@
  * Flow: reason -> AI follow-up -> ONE retention offer -> done
  *
  * IMPORTANT for integrators:
- *   Set `onCancelConfirmed` callback to actually complete cancellation.
- *   Set `onOfferAccepted` callback to apply the discount/pause in your billing.
+ *   Set onCancelConfirmed callback to actually complete cancellation.
+ *   Set onOfferAccepted callback to apply the discount/pause in your billing.
  *
- * Usage:
- *   <script>
- *     window.ChurnGuardConfig = {
- *       publicKey: "YOUR_KEY",
- *       customerMrr: 49,
- *       onCancelConfirmed: function() { /* your cancel logic */ },
- *       onOfferAccepted: function() { /* apply discount */ }
- *     };
- *   </script>
- *   <script src="https://churnguard-sandy.vercel.app/widget.js" async></script>
- *   <button data-churnguard-trigger>Cancel subscription</button>
+ * Usage example:
+ *
+ *   window.ChurnGuardConfig = {
+ *     publicKey: "YOUR_KEY",
+ *     customerMrr: 49,
+ *     onCancelConfirmed: function() {
+ *       // your cancel logic here
+ *     },
+ *     onOfferAccepted: function() {
+ *       // apply discount here
+ *     }
+ *   };
+ *
+ *   Then load this script and add "data-churnguard-trigger" to your button.
  */
 
 (function () {
@@ -77,13 +80,6 @@
 
   function clearElement(element) {
     while (element.firstChild) element.removeChild(element.firstChild);
-  }
-
-  function escapeHtml(str) {
-    if (!str) return '';
-    var div = document.createElement('div');
-    div.textContent = String(str);
-    return div.innerHTML;
   }
 
   // --- Animations ---
