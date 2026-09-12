@@ -101,16 +101,12 @@ export async function POST(request) {
         customer: {
           email: user.email,
         },
-        custom_data: {
+                custom_data: {
           user_id: user.id,
           email: user.email,
           plan: plan,
         },
-        checkout: {
-          url: `${new URL(request.url).origin}/dashboard?checkout=success`,
-        },
       }),
-    });
 
     if (!paddleResponse.ok) {
       const errText = await paddleResponse.text();
