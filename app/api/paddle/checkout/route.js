@@ -115,7 +115,11 @@ export async function POST(request) {
     if (!paddleResponse.ok) {
       const errText = await paddleResponse.text();
       console.error('[ChurnGuard][checkout] Paddle API error:', errText);
-      return errorResponse('Paddle API error', 500, 'PADDLE_ERROR');
+      return errorResponse(
+        'Paddle API error: ' + errText,
+        500,
+        'PADDLE_ERROR'
+      );
     }
 
     const paddleData = await paddleResponse.json();
