@@ -14,7 +14,6 @@ const PRO_PRICE_ID = process.env.PADDLE_PRO_PRICE_ID;
 
 const supabase = createClient(SUPABASE_URL, SUPABASE_SERVICE_KEY);
 
-// --- Paddle API base URL ---
 const PADDLE_API_BASE =
   PADDLE_ENVIRONMENT === 'sandbox'
     ? 'https://sandbox-api.paddle.com'
@@ -32,27 +31,19 @@ const jsonResponse = (data, status = 200) =>
 const errorResponse = (message, status = 500, code = 'ERROR') =>
   jsonResponse({ success: false, error: message, code }, status);
 
-// ===========================================
-//  OPTIONS Handler
-// ===========================================
 export async function OPTIONS() {
   return new Response(null, { status: 204, headers: CORS_HEADERS });
 }
 
-// ===========================================
-//  POST Handler
-// ===========================================
 export async function POST(request) {
   const startTime = Date.now();
 
   try {
-    // --- Env check ---
     if (!PADDLE_API_KEY || !STARTER_PRICE_ID || !PRO_PRICE_ID) {
       console.error('[ChurnGuard][checkout] Missing Paddle env vars');
       return errorResponse('Server configuration error', 500, 'CONFIG_ERROR');
     }
 
-    // --- Parse body ---
     let body;
     try {
       body = await request.json();
@@ -66,7 +57,6 @@ export async function POST(request) {
       return errorResponse('Invalid plan. Use starter or pro.', 400, 'INVALID_PLAN');
     }
 
-    // --- Get user from Supabase auth header ---
     const authHeader = request.headers.get('authorization');
     if (!authHeader) {
       return errorResponse('Missing authorization', 401, 'NO_AUTH');
@@ -80,11 +70,8 @@ export async function POST(request) {
     }
 
     const user = userData.user;
-
-    // --- Determine price ID ---
     const priceId = plan === 'pro' ? PRO_PRICE_ID : STARTER_PRICE_ID;
 
-    // --- Create Paddle transaction (for overlay checkout) ---
     const paddleResponse = await fetch(`${PADDLE_API_BASE}/transactions`, {
       method: 'POST',
       headers: {
@@ -112,11 +99,7 @@ export async function POST(request) {
     if (!paddleResponse.ok) {
       const errText = await paddleResponse.text();
       console.error('[ChurnGuard][checkout] Paddle API error:', errText);
-      return errorResponse(
-        'Paddle API error: ' + errText,
-        500,
-        'PADDLE_ERROR'
-      );
+      return errorResponse('Paddle API error: ' + errText, 500, 'PADDLE_ERROR');
     }
 
     const paddleData = await paddleResponse.json();
