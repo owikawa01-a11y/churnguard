@@ -1,6 +1,6 @@
 // ===========================================
 //  ChurnGuard - Paddle Checkout Session
-//  Creates a checkout URL for subscription purchase
+//  Creates a Paddle transaction for overlay checkout
 // ===========================================
 
 import { createClient } from '@supabase/supabase-js';
@@ -84,7 +84,7 @@ export async function POST(request) {
     // --- Determine price ID ---
     const priceId = plan === 'pro' ? PRO_PRICE_ID : STARTER_PRICE_ID;
 
-    // --- Create Paddle checkout session ---
+    // --- Create Paddle transaction (for overlay checkout) ---
     const paddleResponse = await fetch(`${PADDLE_API_BASE}/transactions`, {
       method: 'POST',
       headers: {
@@ -101,12 +101,13 @@ export async function POST(request) {
         customer: {
           email: user.email,
         },
-                custom_data: {
+        custom_data: {
           user_id: user.id,
           email: user.email,
           plan: plan,
         },
       }),
+    });
 
     if (!paddleResponse.ok) {
       const errText = await paddleResponse.text();
@@ -119,20 +120,19 @@ export async function POST(request) {
     }
 
     const paddleData = await paddleResponse.json();
-    const checkoutUrl = paddleData?.data?.checkout?.url;
+    const transactionId = paddleData?.data?.id;
 
-    if (!checkoutUrl) {
-      console.error('[ChurnGuard][checkout] No checkout URL in response');
-      return errorResponse('No checkout URL returned', 500, 'NO_URL');
+    if (!transactionId) {
+      console.error('[ChurnGuard][checkout] No transaction ID in response');
+      return errorResponse('No transaction ID returned', 500, 'NO_TXN');
     }
 
     const duration = Date.now() - startTime;
-    console.log(`[ChurnGuard][checkout] OK | ${plan} | ${duration}ms`);
+    console.log(`[ChurnGuard][checkout] OK | ${plan} | txn=${transactionId} | ${duration}ms`);
 
     return jsonResponse({
       success: true,
-      checkout_url: checkoutUrl,
-      transaction_id: paddleData.data.id,
+      transaction_id: transactionId,
     });
   } catch (err) {
     console.error('[ChurnGuard][checkout] Unexpected error:', err);
