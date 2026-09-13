@@ -77,8 +77,6 @@ export default function PricingPage() {
           }
         },
       });
-
-      console.log('[Pricing] Paddle initialized');
     } catch (err) {
       console.error('[Pricing] Paddle init failed:', err);
     }
