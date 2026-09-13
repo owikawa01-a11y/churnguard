@@ -1,27 +1,6 @@
 /**
- * ChurnGuard Widget v4.0
- * Single-offer, California-compliant cancellation flow
- *
- * Flow: reason -> AI follow-up -> ONE retention offer -> done
- *
- * IMPORTANT for integrators:
- *   Set onCancelConfirmed callback to actually complete cancellation.
- *   Set onOfferAccepted callback to apply the discount/pause in your billing.
- *
- * Usage example:
- *
- *   window.ChurnGuardConfig = {
- *     publicKey: "YOUR_KEY",
- *     customerMrr: 49,
- *     onCancelConfirmed: function() {
- *       // your cancel logic here
- *     },
- *     onOfferAccepted: function() {
- *       // apply discount here
- *     }
- *   };
- *
- *   Then load this script and add "data-churnguard-trigger" to your button.
+ * ChurnGuard Widget v4.1
+ * Single-offer, California-compliant cancellation flow with Pause option
  */
 
 (function () {
@@ -37,10 +16,7 @@
   }
 
   if (typeof config.onCancelConfirmed !== 'function') {
-    console.warn(
-      '[ChurnGuard] No onCancelConfirmed callback set. The real cancellation ' +
-      'will NOT happen automatically - add this to window.ChurnGuardConfig.'
-    );
+    console.warn('[ChurnGuard] No onCancelConfirmed callback set.');
   }
 
   var REASONS = [
@@ -65,7 +41,6 @@
   var currentOverlay = null;
   var currentEscapeHandler = null;
 
-  // --- Utilities ---
   function el(tag, styles, attrs) {
     var e = document.createElement(tag);
     if (styles) e.style.cssText = styles;
@@ -82,7 +57,6 @@
     while (element.firstChild) element.removeChild(element.firstChild);
   }
 
-  // --- Animations ---
   function injectStyles() {
     if (document.getElementById('churnguard-styles')) return;
     var style = document.createElement('style');
@@ -94,7 +68,6 @@
     document.head.appendChild(style);
   }
 
-  // --- Modal Shell ---
   function createModal() {
     removeExistingModal();
 
@@ -160,9 +133,7 @@
   function completeCancellation() {
     closeModal();
     if (typeof config.onCancelConfirmed === 'function') {
-      try {
-        config.onCancelConfirmed();
-      } catch (err) {
+      try { config.onCancelConfirmed(); } catch (err) {
         console.error('[ChurnGuard] onCancelConfirmed failed:', err);
       }
     } else if (config.cancelUrl) {
@@ -170,7 +141,6 @@
     }
   }
 
-  // --- Step 1: Reason Selection ---
   function renderReasonStep(box) {
     clearElement(box);
 
@@ -219,7 +189,6 @@
     box.appendChild(skip);
   }
 
-  // --- Step 2: Loading ---
   function renderLoadingStep(box, message) {
     clearElement(box);
     var wrapper = el('div', 'text-align:center;padding:20px 0;', null);
@@ -237,7 +206,6 @@
     box.appendChild(wrapper);
   }
 
-  // --- Step 3: AI Follow-up Question ---
   function renderFollowUpStep(box, eventId, question, reason) {
     clearElement(box);
 
@@ -297,7 +265,6 @@
     box.appendChild(skip);
   }
 
-  // --- Step 4: Retention Offer ---
   function fetchAndShowOffer(box, eventId, reason, answer) {
     renderLoadingStep(box, 'Preparing something...');
 
@@ -338,7 +305,7 @@
     ));
     box.appendChild(el(
       'p',
-      'margin:0 0 22px;font-size:15px;color:' + UI.text + ';line-height:1.55;',
+      'margin:0 0 20px;font-size:15px;color:' + UI.text + ';line-height:1.55;',
       { text: offerText }
     ));
 
@@ -363,15 +330,37 @@
     });
     box.appendChild(acceptBtn);
 
-    var declineBtn = el('button', [
-      'width:100%', 'padding:14px', 'background:' + UI.bg,
-      'color:' + UI.text, 'border:1.5px solid ' + UI.border,
-      'border-radius:12px', 'font-size:14px', 'font-weight:500',
+    var pauseBtn = el('button', [
+      'width:100%', 'padding:12px', 'margin-bottom:10px',
+      'background:transparent', 'color:' + UI.text,
+      'border:1.5px solid ' + UI.border,
+      'border-radius:12px', 'font-size:13px', 'font-weight:500',
       'cursor:pointer', 'font-family:inherit', 'transition:all 0.15s'
+    ].join(';'), { type: 'button', text: 'Or pause for 2 months (resume anytime)' });
+
+    pauseBtn.addEventListener('mouseenter', function () { pauseBtn.style.background = '#f9fafb'; });
+    pauseBtn.addEventListener('mouseleave', function () { pauseBtn.style.background = 'transparent'; });
+    pauseBtn.addEventListener('click', function () {
+      recordDecision(eventId, true, 'paused');
+      closeModal();
+      if (typeof config.onOfferAccepted === 'function') {
+        try { config.onOfferAccepted(); } catch (err) {
+          console.error('[ChurnGuard] onOfferAccepted failed:', err);
+        }
+      } else {
+        alert("We've noted your request - your subscription will be paused for 2 months.");
+      }
+    });
+    box.appendChild(pauseBtn);
+
+    var declineBtn = el('button', [
+      'width:100%', 'padding:14px', 'background:transparent',
+      'color:' + UI.textSubtle, 'border:none',
+      'border-radius:12px', 'font-size:13px', 'font-weight:500',
+      'cursor:pointer', 'font-family:inherit', 'transition:all 0.15s',
+      'text-decoration:underline'
     ].join(';'), { type: 'button', text: 'No thanks, cancel my subscription' });
 
-    declineBtn.addEventListener('mouseenter', function () { declineBtn.style.background = '#f9fafb'; });
-    declineBtn.addEventListener('mouseleave', function () { declineBtn.style.background = UI.bg; });
     declineBtn.addEventListener('click', function () {
       recordDecision(eventId, false);
       completeCancellation();
@@ -379,7 +368,6 @@
     box.appendChild(declineBtn);
   }
 
-  // --- Network: Submit Reason ---
   function submitReason(reason, box) {
     renderLoadingStep(box, 'Thinking...');
 
@@ -401,7 +389,7 @@
           return;
         }
         if (result.status === 404) {
-          renderErrorStep(box, 'This widget is not configured correctly. Please contact support.', false);
+          renderErrorStep(box, 'This widget is not configured correctly.', false);
           return;
         }
         if (!result.ok) {
@@ -426,7 +414,6 @@
       });
   }
 
-  // --- Error Step ---
   function renderErrorStep(box, message, canRetry, onRetry) {
     clearElement(box);
 
@@ -454,10 +441,9 @@
     box.appendChild(cancelBtn);
   }
 
-  // --- Record Decision ---
-  function recordDecision(eventId, accepted) {
+  function recordDecision(eventId, accepted, action) {
     var payload = { event_id: eventId, accepted: accepted };
-
+    if (action) payload.action = action;
     if (typeof config.customerMrr === 'number' && config.customerMrr >= 0) {
       payload.customer_mrr = config.customerMrr;
     }
@@ -471,7 +457,6 @@
     });
   }
 
-  // --- Public API ---
   function show() {
     var box = createModal();
     renderReasonStep(box);
@@ -479,7 +464,6 @@
 
   window.ChurnGuard = { show: show, hide: closeModal };
 
-  // --- Auto-wire Triggers ---
   function init() {
     var triggers = document.querySelectorAll('[data-churnguard-trigger]');
     triggers.forEach(function (trigger) {
@@ -490,11 +474,10 @@
     });
   }
 
-  // --- Bootstrap ---
   function boot() {
     injectStyles();
     init();
-    console.log('[ChurnGuard] Widget v4.0 ready');
+    console.log('[ChurnGuard] Widget v4.1 ready');
   }
 
   if (document.readyState === 'loading') {

@@ -74,12 +74,6 @@ const IconDollar = () => (
   </svg>
 );
 
-const IconSparkle = () => (
-  <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24" strokeWidth={2}>
-    <path strokeLinecap="round" strokeLinejoin="round" d="M5 3v4M3 5h4M6 17v4m-2-2h4m5-16l2.286 6.857L21 12l-5.714 2.143L13 21l-2.286-6.857L5 12l5.714-2.143L13 3z" />
-  </svg>
-);
-
 // ===========================================
 //  Main Component
 // ===========================================
@@ -173,6 +167,7 @@ export default function Dashboard() {
     window.ChurnGuardConfig = {
       publicKey: publicKey,
       customerEmail: 'demo@customer.com',
+      customerMrr: 49,
       cancelUrl: '/dashboard',
     };
     if (window.ChurnGuard) {
@@ -199,7 +194,6 @@ export default function Dashboard() {
     );
   }
 
-  // --- Calculate Metrics ---
   const now = new Date();
   const startOfMonth = new Date(now.getFullYear(), now.getMonth(), 1);
   const todayCount = events.filter(
@@ -243,7 +237,7 @@ export default function Dashboard() {
 
       <div className="relative z-10 max-w-7xl mx-auto px-6 py-10 md:px-10 md:py-14">
 
-        {/* ═══════ Trial Banner — Warning ═══════ */}
+        {/* Trial Warning */}
         {showTrialWarning && (
           <div className="mb-8 p-4 rounded-2xl bg-amber-500/[0.08] border border-amber-500/30 flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4">
             <div className="flex items-center gap-3">
@@ -267,7 +261,7 @@ export default function Dashboard() {
           </div>
         )}
 
-        {/* ═══════ Trial Banner — Expired ═══════ */}
+        {/* Trial Expired */}
         {isTrialExpired && (
           <div className="mb-8 p-4 rounded-2xl bg-red-500/[0.08] border border-red-500/30 flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4">
             <div className="flex items-center gap-3">
@@ -291,7 +285,7 @@ export default function Dashboard() {
           </div>
         )}
 
-        {/* ═══════ Header ═══════ */}
+        {/* Header */}
         <header className="mb-12">
           <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-6">
             <div className="flex items-center gap-4">
@@ -355,7 +349,7 @@ export default function Dashboard() {
           </div>
         </header>
 
-        {/* ═══════ Recovered Revenue Hero Card ═══════ */}
+        {/* Recovered Revenue Hero Card */}
         <section className="mb-6">
           <div className="relative rounded-3xl bg-gradient-to-br from-emerald-500/[0.08] via-violet-500/[0.04] to-fuchsia-500/[0.02] border-2 border-emerald-500/25 p-6 md:p-8 overflow-hidden">
             <div className="absolute top-0 right-0 w-96 h-96 bg-emerald-500/[0.15] rounded-full blur-3xl -translate-y-1/2 translate-x-1/2 pointer-events-none"></div>
@@ -363,7 +357,6 @@ export default function Dashboard() {
 
             <div className="relative">
               <div className="flex flex-col lg:flex-row lg:items-center justify-between gap-8">
-                {/* Left side — Big number */}
                 <div className="flex-1">
                   <div className="flex items-center gap-2 mb-4">
                     <div className="w-10 h-10 rounded-xl bg-emerald-500/15 border border-emerald-500/30 flex items-center justify-center text-emerald-300">
@@ -385,7 +378,6 @@ export default function Dashboard() {
                   </div>
                 </div>
 
-                {/* Right side — Metrics */}
                 <div className="grid grid-cols-3 gap-4 lg:gap-8 lg:border-l lg:border-white/[0.06] lg:pl-8">
                   <div>
                     <p className="text-[10px] font-semibold text-slate-500 uppercase tracking-wider mb-1.5">
@@ -422,9 +414,8 @@ export default function Dashboard() {
           </div>
         </section>
 
-        {/* ═══════ Stats Grid ═══════ */}
+        {/* Stats Grid */}
         <section className="grid grid-cols-1 sm:grid-cols-3 gap-4 mb-6">
-          {/* Total Cancellations */}
           <div className="group relative p-6 rounded-2xl bg-white/[0.02] border border-white/[0.06] hover:border-violet-500/30 transition-all duration-300 overflow-hidden">
             <div className="absolute top-0 right-0 w-40 h-40 bg-violet-500/[0.08] rounded-full blur-3xl -translate-y-1/2 translate-x-1/2 group-hover:bg-violet-500/[0.15] transition-all duration-500"></div>
             <div className="relative">
@@ -441,7 +432,6 @@ export default function Dashboard() {
             </div>
           </div>
 
-          {/* Today */}
           <div className="group relative p-6 rounded-2xl bg-white/[0.02] border border-white/[0.06] hover:border-emerald-500/30 transition-all duration-300 overflow-hidden">
             <div className="absolute top-0 right-0 w-40 h-40 bg-emerald-500/[0.08] rounded-full blur-3xl -translate-y-1/2 translate-x-1/2 group-hover:bg-emerald-500/[0.15] transition-all duration-500"></div>
             <div className="relative">
@@ -458,7 +448,6 @@ export default function Dashboard() {
             </div>
           </div>
 
-          {/* Public Key */}
           <div className="group relative p-6 rounded-2xl bg-white/[0.02] border border-white/[0.06] hover:border-amber-500/30 transition-all duration-300 overflow-hidden">
             <div className="absolute top-0 right-0 w-40 h-40 bg-amber-500/[0.06] rounded-full blur-3xl -translate-y-1/2 translate-x-1/2 group-hover:bg-amber-500/[0.12] transition-all duration-500"></div>
             <div className="relative">
@@ -493,7 +482,7 @@ export default function Dashboard() {
           </div>
         </section>
 
-        {/* ═══════ Events Table ═══════ */}
+        {/* Events Table */}
         <section className="relative rounded-2xl bg-white/[0.02] border border-white/[0.06] overflow-hidden">
           <div className="h-px bg-gradient-to-r from-transparent via-violet-500/50 to-transparent"></div>
 
@@ -523,8 +512,7 @@ export default function Dashboard() {
                 </div>
                 <p className="text-slate-300 font-medium">No cancellations recorded</p>
                 <p className="text-slate-500 text-sm mt-1.5 max-w-sm mx-auto">
-                  Try the <span className="text-violet-300">Test Widget</span> button above to
-                  simulate one.
+                  Try the <span className="text-violet-300">Test Widget</span> button above to simulate one.
                 </p>
               </div>
             ) : (
@@ -570,19 +558,25 @@ export default function Dashboard() {
                           </span>
                         </td>
                         <td className="py-4 px-2">
-                          {event.offer_accepted === true && (
+                          {event.offer_accepted === true && event.final_action === 'paused' && (
+                            <span className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-md text-[10px] font-bold uppercase bg-blue-500/15 text-blue-300 border border-blue-500/25">
+                              <span className="w-1.5 h-1.5 rounded-full bg-blue-400"></span>
+                              Paused
+                            </span>
+                          )}
+                          {event.offer_accepted === true && event.final_action !== 'paused' && (
                             <span className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-md text-[10px] font-bold uppercase bg-emerald-500/15 text-emerald-300 border border-emerald-500/25">
                               <span className="w-1.5 h-1.5 rounded-full bg-emerald-400"></span>
                               Saved
                             </span>
                           )}
                           {event.offer_accepted === false && (
-                            <span className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-md text-[10px] font-bold uppercase bg-slate-500/15 text-slate-400 border border-slate-500/25">
-                              <span className="w-1.5 h-1.5 rounded-full bg-slate-400"></span>
+                            <span className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-md text-[10px] font-bold uppercase bg-red-500/15 text-red-300 border border-red-500/25">
+                              <span className="w-1.5 h-1.5 rounded-full bg-red-400"></span>
                               Cancelled
                             </span>
                           )}
-                          {event.offer_accepted === null && (
+                          {(event.offer_accepted === null || event.offer_accepted === undefined) && (
                             <span className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-md text-[10px] font-bold uppercase bg-amber-500/15 text-amber-300 border border-amber-500/25">
                               <span className="w-1.5 h-1.5 rounded-full bg-amber-400 animate-pulse"></span>
                               Pending
@@ -608,7 +602,6 @@ export default function Dashboard() {
           </div>
         </section>
 
-        {/* ═══════ Footer ═══════ */}
         <footer className="mt-10 flex items-center justify-center gap-2 text-xs text-slate-600">
           <span className="w-1.5 h-1.5 rounded-full bg-emerald-400/70 animate-pulse"></span>
           <IconShield />
