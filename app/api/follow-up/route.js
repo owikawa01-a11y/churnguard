@@ -44,7 +44,7 @@ const errorResponse = (message, status = 500, code = 'ERROR') =>
 
 // ─── Constants ────────────────────────────────────────────
 const GROQ_API_URL = 'https://api.groq.com/openai/v1/chat/completions';
-const GROQ_MODEL = 'llama-3.3-70b-versatile';
+const GROQ_MODEL = 'openai/gpt-oss-120b';
 const GROQ_TIMEOUT_MS = 5000;
 const MAX_REASON_LENGTH = 500;
 const MAX_PUBLIC_KEY_LENGTH = 100;
