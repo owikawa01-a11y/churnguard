@@ -194,6 +194,7 @@ export default function Dashboard() {
     );
   }
 
+  // --- Metrics ---
   const now = new Date();
   const startOfMonth = new Date(now.getFullYear(), now.getMonth(), 1);
   const todayCount = events.filter(
@@ -201,7 +202,11 @@ export default function Dashboard() {
   ).length;
 
   const savedEvents = events.filter((e) => e.offer_accepted === true);
-  const decidedEvents = events.filter((e) => e.offer_accepted !== null);
+  const pausedEvents = events.filter((e) => e.final_action === 'paused');
+  const cancelledEvents = events.filter((e) => e.offer_accepted === false);
+  const pendingEvents = events.filter((e) => e.offer_accepted === null || e.offer_accepted === undefined);
+  const decidedEvents = events.filter((e) => e.offer_accepted !== null && e.offer_accepted !== undefined);
+
   const savedThisMonth = savedEvents.filter((e) => new Date(e.created_at) >= startOfMonth).length;
 
   const recoveredThisMonth = savedEvents
@@ -224,6 +229,35 @@ export default function Dashboard() {
   const isTrial = status === 'trialing' && !isTrialExpired;
   const isActive = status === 'active';
   const showTrialWarning = isTrial && access.daysLeft > 0 && access.daysLeft <= 7;
+
+  // --- Group events by date ---
+  const groupedEvents = (() => {
+    const groups = {};
+    events.forEach((event) => {
+      const d = new Date(event.created_at);
+      const today = new Date();
+      const yesterday = new Date();
+      yesterday.setDate(today.getDate() - 1);
+
+      let label;
+      if (d.toDateString() === today.toDateString()) {
+        label = 'Today';
+      } else if (d.toDateString() === yesterday.toDateString()) {
+        label = 'Yesterday';
+      } else {
+        label = d.toLocaleDateString('en-US', {
+          weekday: 'long',
+          month: 'short',
+          day: 'numeric',
+          year: d.getFullYear() !== today.getFullYear() ? 'numeric' : undefined,
+        });
+      }
+
+      if (!groups[label]) groups[label] = [];
+      groups[label].push(event);
+    });
+    return groups;
+  })();
 
   return (
     <div className="relative min-h-screen bg-[#05050c] text-white font-sans antialiased overflow-x-hidden">
@@ -269,9 +303,7 @@ export default function Dashboard() {
                 <IconWarning />
               </span>
               <div>
-                <p className="text-sm font-semibold text-red-100">
-                  Your trial has expired
-                </p>
+                <p className="text-sm font-semibold text-red-100">Your trial has expired</p>
                 <p className="text-xs text-red-200/70 mt-0.5">
                   Upgrade to continue using your dashboard. Your widget is still collecting data.
                 </p>
@@ -482,12 +514,13 @@ export default function Dashboard() {
           </div>
         </section>
 
-        {/* Events Table */}
+        {/* Events Section */}
         <section className="relative rounded-2xl bg-white/[0.02] border border-white/[0.06] overflow-hidden">
           <div className="h-px bg-gradient-to-r from-transparent via-violet-500/50 to-transparent"></div>
 
           <div className="p-6 md:p-8">
-            <div className="flex items-center justify-between mb-8">
+            {/* Header */}
+            <div className="flex flex-col md:flex-row md:items-center justify-between gap-4 mb-6">
               <div className="flex items-center gap-3">
                 <div className="w-9 h-9 rounded-lg bg-white/[0.03] border border-white/[0.08] flex items-center justify-center text-slate-400">
                   <IconInbox />
@@ -499,11 +532,36 @@ export default function Dashboard() {
                   <p className="text-xs text-slate-500 mt-0.5">
                     {events.length === 0
                       ? 'No feedback yet'
-                      : `${events.length} total · ${savedEvents.length} saved`}
+                      : `${events.length} total · ${savedEvents.length} saved · ${decidedEvents.length} decided`}
                   </p>
                 </div>
               </div>
+
+              {/* Quick Stats */}
+              {events.length > 0 && (
+                <div className="flex gap-2 flex-wrap">
+                  <span className="px-3 py-1.5 rounded-lg bg-emerald-500/10 border border-emerald-500/20 text-emerald-300 text-[10px] font-bold uppercase tracking-wider">
+                    {savedEvents.length} Saved
+                  </span>
+                  <span className="px-3 py-1.5 rounded-lg bg-blue-500/10 border border-blue-500/20 text-blue-300 text-[10px] font-bold uppercase tracking-wider">
+                    {pausedEvents.length} Paused
+                  </span>
+                  <span className="px-3 py-1.5 rounded-lg bg-red-500/10 border border-red-500/20 text-red-300 text-[10px] font-bold uppercase tracking-wider">
+                    {cancelledEvents.length} Cancelled
+                  </span>
+                  <span className="px-3 py-1.5 rounded-lg bg-amber-500/10 border border-amber-500/20 text-amber-300 text-[10px] font-bold uppercase tracking-wider">
+                    {pendingEvents.length} Pending
+                  </span>
+                </div>
+              )}
             </div>
+
+            {events.length > 0 && (
+              <div className="mb-6 flex items-center gap-2 text-[10px] font-semibold text-slate-500 uppercase tracking-wider">
+                <span className="w-2 h-2 rounded-full bg-violet-400"></span>
+                Sorted newest first · grouped by date
+              </div>
+            )}
 
             {events.length === 0 ? (
               <div className="text-center py-16">
@@ -516,87 +574,128 @@ export default function Dashboard() {
                 </p>
               </div>
             ) : (
-              <div className="overflow-x-auto -mx-2">
-                <table className="w-full">
-                  <thead>
-                    <tr className="border-b border-white/[0.06]">
-                      <th className="text-left pb-3 px-2 text-[10px] font-semibold text-slate-500 uppercase tracking-[0.15em]">
-                        Customer
-                      </th>
-                      <th className="text-left pb-3 px-2 text-[10px] font-semibold text-slate-500 uppercase tracking-[0.15em]">
-                        Reason
-                      </th>
-                      <th className="text-left pb-3 px-2 text-[10px] font-semibold text-slate-500 uppercase tracking-[0.15em]">
-                        Status
-                      </th>
-                      <th className="text-right pb-3 px-2 text-[10px] font-semibold text-slate-500 uppercase tracking-[0.15em]">
-                        Date
-                      </th>
-                    </tr>
-                  </thead>
-                  <tbody>
-                    {events.map((event) => (
-                      <tr
-                        key={event.id}
-                        className="border-b border-white/[0.04] hover:bg-white/[0.02] transition-colors duration-150"
-                      >
-                        <td className="py-4 px-2">
-                          <div className="flex items-center gap-3">
-                            <div className="w-8 h-8 rounded-full bg-gradient-to-br from-violet-500 to-fuchsia-500 flex items-center justify-center text-xs font-bold text-white flex-shrink-0">
-                              {event.customer_email
-                                ? event.customer_email.charAt(0).toUpperCase()
-                                : '?'}
+              <div className="space-y-8">
+                {Object.entries(groupedEvents).map(([dateLabel, dateEvents]) => (
+                  <div key={dateLabel}>
+                    {/* Date Separator */}
+                    <div className="flex items-center gap-3 mb-4">
+                      <span className="text-xs font-bold text-slate-400 uppercase tracking-[0.15em]">
+                        {dateLabel}
+                      </span>
+                      <div className="flex-1 h-px bg-white/[0.06]"></div>
+                      <span className="text-[10px] font-semibold text-slate-600 uppercase tracking-wider">
+                        {dateEvents.length} {dateEvents.length === 1 ? 'event' : 'events'}
+                      </span>
+                    </div>
+
+                    {/* Events */}
+                    <div className="space-y-2">
+                      {dateEvents.map((event) => {
+                        const isSaved = event.offer_accepted === true && event.final_action !== 'paused';
+                        const isPaused = event.offer_accepted === true && event.final_action === 'paused';
+                        const isCancelled = event.offer_accepted === false;
+                        const isPending = event.offer_accepted === null || event.offer_accepted === undefined;
+
+                        const borderColor = isSaved
+                          ? 'border-l-emerald-500/60'
+                          : isPaused
+                          ? 'border-l-blue-500/60'
+                          : isCancelled
+                          ? 'border-l-red-500/60'
+                          : 'border-l-amber-500/60';
+
+                        return (
+                          <div
+                            key={event.id}
+                            className={`group relative pl-4 pr-4 py-4 rounded-xl bg-white/[0.02] border border-white/[0.06] border-l-4 ${borderColor} hover:bg-white/[0.04] transition-all duration-200`}
+                          >
+                            <div className="flex flex-col md:flex-row md:items-center gap-3 md:gap-4">
+                              {/* Customer */}
+                              <div className="flex items-center gap-3 flex-shrink-0 md:w-56">
+                                <div className="w-9 h-9 rounded-full bg-gradient-to-br from-violet-500 to-fuchsia-500 flex items-center justify-center text-xs font-bold text-white flex-shrink-0">
+                                  {event.customer_email ? event.customer_email.charAt(0).toUpperCase() : '?'}
+                                </div>
+                                <div className="min-w-0">
+                                  <p className="text-slate-200 font-mono text-xs truncate">
+                                    {event.customer_email || 'Anonymous'}
+                                  </p>
+                                  <p className="text-[10px] text-slate-500 mt-0.5">
+                                    {new Date(event.created_at).toLocaleTimeString('en-US', {
+                                      hour: '2-digit',
+                                      minute: '2-digit',
+                                    })}
+                                  </p>
+                                </div>
+                              </div>
+
+                              {/* Details */}
+                              <div className="flex-1 min-w-0 space-y-1.5">
+                                <div className="flex items-center gap-2 flex-wrap">
+                                  <span className="text-[10px] font-bold text-slate-500 uppercase tracking-wider">
+                                    Reason:
+                                  </span>
+                                  <span className="inline-block px-2.5 py-1 rounded-md text-xs font-medium bg-white/[0.04] text-slate-200 border border-white/[0.06]">
+                                    {event.initial_reason || event.reason || 'N/A'}
+                                  </span>
+                                </div>
+
+                                {event.ai_follow_up_question && (
+                                  <div className="text-[11px] text-slate-400 leading-relaxed">
+                                    <span className="text-slate-500">Q:</span> {event.ai_follow_up_question}
+                                  </div>
+                                )}
+                                {event.follow_up_answer && (
+                                  <div className="text-[11px] text-violet-300/90 leading-relaxed">
+                                    <span className="text-slate-500">A:</span> {event.follow_up_answer}
+                                  </div>
+                                )}
+
+                                {event.offer_shown && (
+                                  <div className="flex items-center gap-2 flex-wrap pt-1">
+                                    <span className="text-[10px] font-bold text-slate-500 uppercase tracking-wider">
+                                      Offer:
+                                    </span>
+                                    <span className="text-[11px] text-emerald-300/80">
+                                      {event.offer_shown}
+                                    </span>
+                                  </div>
+                                )}
+                              </div>
+
+                              {/* Status */}
+                              <div className="flex-shrink-0">
+                                {isSaved && (
+                                  <span className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-[10px] font-bold uppercase bg-emerald-500/15 text-emerald-300 border border-emerald-500/25">
+                                    <span className="w-1.5 h-1.5 rounded-full bg-emerald-400"></span>
+                                    Saved
+                                  </span>
+                                )}
+                                {isPaused && (
+                                  <span className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-[10px] font-bold uppercase bg-blue-500/15 text-blue-300 border border-blue-500/25">
+                                    <span className="w-1.5 h-1.5 rounded-full bg-blue-400"></span>
+                                    Paused
+                                  </span>
+                                )}
+                                {isCancelled && (
+                                  <span className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-[10px] font-bold uppercase bg-red-500/15 text-red-300 border border-red-500/25">
+                                    <span className="w-1.5 h-1.5 rounded-full bg-red-400"></span>
+                                    Cancelled
+                                  </span>
+                                )}
+                                {isPending && (
+                                  <span className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-[10px] font-bold uppercase bg-amber-500/15 text-amber-300 border border-amber-500/25">
+                                    <span className="w-1.5 h-1.5 rounded-full bg-amber-400 animate-pulse"></span>
+                                    Pending
+                                  </span>
+                                )}
+                              </div>
                             </div>
-                            <span className="text-slate-200 font-mono text-xs truncate max-w-[140px] md:max-w-[220px]">
-                              {event.customer_email || 'Anonymous'}
-                            </span>
                           </div>
-                        </td>
-                        <td className="py-4 px-2">
-                          <span className="inline-block px-3 py-1.5 rounded-md text-xs font-medium bg-white/[0.03] text-slate-200 border border-white/[0.06]">
-                            {event.initial_reason || event.reason || 'N/A'}
-                          </span>
-                        </td>
-                        <td className="py-4 px-2">
-                          {event.offer_accepted === true && event.final_action === 'paused' && (
-                            <span className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-md text-[10px] font-bold uppercase bg-blue-500/15 text-blue-300 border border-blue-500/25">
-                              <span className="w-1.5 h-1.5 rounded-full bg-blue-400"></span>
-                              Paused
-                            </span>
-                          )}
-                          {event.offer_accepted === true && event.final_action !== 'paused' && (
-                            <span className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-md text-[10px] font-bold uppercase bg-emerald-500/15 text-emerald-300 border border-emerald-500/25">
-                              <span className="w-1.5 h-1.5 rounded-full bg-emerald-400"></span>
-                              Saved
-                            </span>
-                          )}
-                          {event.offer_accepted === false && (
-                            <span className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-md text-[10px] font-bold uppercase bg-red-500/15 text-red-300 border border-red-500/25">
-                              <span className="w-1.5 h-1.5 rounded-full bg-red-400"></span>
-                              Cancelled
-                            </span>
-                          )}
-                          {(event.offer_accepted === null || event.offer_accepted === undefined) && (
-                            <span className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-md text-[10px] font-bold uppercase bg-amber-500/15 text-amber-300 border border-amber-500/25">
-                              <span className="w-1.5 h-1.5 rounded-full bg-amber-400 animate-pulse"></span>
-                              Pending
-                            </span>
-                          )}
-                        </td>
-                        <td className="py-4 px-2 text-right">
-                          <span className="text-xs text-slate-500 font-mono whitespace-nowrap">
-                            {new Date(event.created_at).toLocaleDateString('en-US', {
-                              month: 'short',
-                              day: 'numeric',
-                              hour: '2-digit',
-                              minute: '2-digit',
-                            })}
-                          </span>
-                        </td>
-                      </tr>
-                    ))}
-                  </tbody>
-                </table>
+                        );
+                      })}
+                    </div>
+                  </div>
+                ))}
               </div>
             )}
           </div>
