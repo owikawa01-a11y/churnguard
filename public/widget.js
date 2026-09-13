@@ -318,15 +318,20 @@
     ].join(';'), { type: 'button', text: 'Yes, keep my account' });
 
     acceptBtn.addEventListener('click', function () {
-      recordDecision(eventId, true);
-      closeModal();
-      if (typeof config.onOfferAccepted === 'function') {
-        try { config.onOfferAccepted(); } catch (err) {
-          console.error('[ChurnGuard] onOfferAccepted failed:', err);
+      acceptBtn.disabled = true;
+      acceptBtn.textContent = 'Saving...';
+      acceptBtn.style.opacity = '0.7';
+
+      recordDecision(eventId, true).then(function () {
+        closeModal();
+        if (typeof config.onOfferAccepted === 'function') {
+          try { config.onOfferAccepted(); } catch (err) {
+            console.error('[ChurnGuard] onOfferAccepted failed:', err);
+          }
+        } else {
+          alert("We've noted your response - the offer will be applied to your account shortly.");
         }
-      } else {
-        alert("We've noted your response - the offer will be applied to your account shortly.");
-      }
+      });
     });
     box.appendChild(acceptBtn);
 
@@ -341,15 +346,20 @@
     pauseBtn.addEventListener('mouseenter', function () { pauseBtn.style.background = '#f9fafb'; });
     pauseBtn.addEventListener('mouseleave', function () { pauseBtn.style.background = 'transparent'; });
     pauseBtn.addEventListener('click', function () {
-      recordDecision(eventId, true, 'paused');
-      closeModal();
-      if (typeof config.onOfferAccepted === 'function') {
-        try { config.onOfferAccepted(); } catch (err) {
-          console.error('[ChurnGuard] onOfferAccepted failed:', err);
+      pauseBtn.disabled = true;
+      pauseBtn.textContent = 'Pausing...';
+      pauseBtn.style.opacity = '0.6';
+
+      recordDecision(eventId, true, 'paused').then(function () {
+        closeModal();
+        if (typeof config.onOfferAccepted === 'function') {
+          try { config.onOfferAccepted(); } catch (err) {
+            console.error('[ChurnGuard] onOfferAccepted failed:', err);
+          }
+        } else {
+          alert("We've noted your request - your subscription will be paused for 2 months.");
         }
-      } else {
-        alert("We've noted your request - your subscription will be paused for 2 months.");
-      }
+      });
     });
     box.appendChild(pauseBtn);
 
@@ -362,8 +372,13 @@
     ].join(';'), { type: 'button', text: 'No thanks, cancel my subscription' });
 
     declineBtn.addEventListener('click', function () {
-      recordDecision(eventId, false);
-      completeCancellation();
+      declineBtn.disabled = true;
+      declineBtn.textContent = 'Cancelling...';
+      declineBtn.style.opacity = '0.6';
+
+      recordDecision(eventId, false).then(function () {
+        completeCancellation();
+      });
     });
     box.appendChild(declineBtn);
   }
@@ -452,13 +467,22 @@
       payload.customer_mrr = config.customerMrr;
     }
 
-    fetch(API_BASE + '/api/decision', {
+    // Return the promise so callers can wait for it
+    return fetch(API_BASE + '/api/decision', {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify(payload)
-    }).catch(function (err) {
-      console.error('[ChurnGuard] Failed to record decision:', err);
-    });
+    })
+      .then(function (res) { return res.json(); })
+      .then(function (data) {
+        console.log('[ChurnGuard] Decision recorded:', data);
+        return data;
+      })
+      .catch(function (err) {
+        console.error('[ChurnGuard] Failed to record decision:', err);
+        // Don't block cancellation if API fails
+        return null;
+      });
   }
 
   function show() {
