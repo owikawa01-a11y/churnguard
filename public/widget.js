@@ -374,7 +374,11 @@
     fetch(API_BASE + '/api/follow-up', {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ public_key: publicKey, reason: reason })
+      body: JSON.stringify({
+        public_key: publicKey,
+        reason: reason,
+        customer_email: config.customerEmail || null
+      })
     })
       .then(function (res) {
         return res.json().then(function (d) {

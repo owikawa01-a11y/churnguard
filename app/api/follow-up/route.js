@@ -98,7 +98,7 @@ export async function POST(request) {
       return errorResponse('Invalid JSON body', 400, 'INVALID_JSON');
     }
 
-    const { public_key, reason } = body;
+    const { public_key, reason, customer_email } = body;
 
     // ─── 4. Input Validation ────────────────────────────
     if (!public_key || typeof public_key !== 'string') {
@@ -131,10 +131,15 @@ export async function POST(request) {
     const { question, source } = await generateFollowUpQuestion(cleanReason);
 
     // ─── 8. Save Event to Database ──────────────────────
+    const cleanEmail = customer_email && typeof customer_email === 'string'
+      ? customer_email.trim().slice(0, 200)
+      : null;
+
     const { data: event, error: insertError } = await supabase
       .from('cancellation_events')
       .insert({
         widget_id: widget.id,
+        customer_email: cleanEmail,
         initial_reason: cleanReason,
         ai_follow_up_question: question,
       })
