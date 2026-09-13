@@ -74,6 +74,12 @@ const IconDollar = () => (
   </svg>
 );
 
+const IconLock = () => (
+  <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24" strokeWidth={2}>
+    <path strokeLinecap="round" strokeLinejoin="round" d="M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2zm10-10V7a4 4 0 00-8 0v4h8z" />
+  </svg>
+);
+
 // ===========================================
 //  Main Component
 // ===========================================
@@ -183,6 +189,47 @@ export default function Dashboard() {
     document.body.appendChild(script);
   };
 
+  // ===========================================
+  //  CSV Export — Pro Only
+  // ===========================================
+  const exportToCsv = () => {
+    if (events.length === 0) return;
+
+    // Header row
+    const headers = ['Date', 'Customer Email', 'Reason', 'Status', 'Offer Shown', 'Customer MRR'];
+
+    // Data rows
+    const rows = events.map((e) => {
+      let status = 'pending';
+      if (e.offer_accepted === true && e.final_action === 'paused') status = 'paused';
+      else if (e.offer_accepted === true) status = 'saved';
+      else if (e.offer_accepted === false) status = 'cancelled';
+
+      return [
+        new Date(e.created_at).toISOString(),
+        e.customer_email || 'Anonymous',
+        `"${(e.initial_reason || e.reason || '').replace(/"/g, '""')}"`,
+        status,
+        `"${(e.offer_shown || '').replace(/"/g, '""')}"`,
+        e.customer_mrr || '0',
+      ];
+    });
+
+    // Combine
+    const csvContent = [headers.join(','), ...rows.map((r) => r.join(','))].join('\n');
+
+    // Download
+    const blob = new Blob([csvContent], { type: 'text/csv;charset=utf-8;' });
+    const url = URL.createObjectURL(blob);
+    const link = document.createElement('a');
+    link.href = url;
+    link.download = `churnguard-export-${new Date().toISOString().split('T')[0]}.csv`;
+    document.body.appendChild(link);
+    link.click();
+    document.body.removeChild(link);
+    URL.revokeObjectURL(url);
+  };
+
   if (loading) {
     return (
       <div className="min-h-screen bg-[#05050c] flex items-center justify-center">
@@ -228,6 +275,7 @@ export default function Dashboard() {
   const isTrialExpired = access.reason === 'trial_expired';
   const isTrial = status === 'trialing' && !isTrialExpired;
   const isActive = status === 'active';
+  const isPro = isActive && plan === 'pro';
   const showTrialWarning = isTrial && access.daysLeft > 0 && access.daysLeft <= 7;
 
   // --- Group events by date ---
@@ -337,9 +385,14 @@ export default function Dashboard() {
                       Trial
                     </span>
                   )}
-                  {isActive && (
+                  {isPro && (
                     <span className="px-2.5 py-1 rounded-full bg-emerald-500/15 border border-emerald-500/30 text-emerald-300 text-[10px] font-bold uppercase tracking-wider">
-                      {plan}
+                      Pro
+                    </span>
+                  )}
+                  {isActive && !isPro && (
+                    <span className="px-2.5 py-1 rounded-full bg-blue-500/15 border border-blue-500/30 text-blue-300 text-[10px] font-bold uppercase tracking-wider">
+                      Starter
                     </span>
                   )}
                   {isTrialExpired && (
@@ -381,69 +434,110 @@ export default function Dashboard() {
           </div>
         </header>
 
-        {/* Recovered Revenue Hero Card */}
+        {/* =========================================== */}
+        {/* Recovered Revenue Card — Pro Only        */}
+        {/* =========================================== */}
         <section className="mb-6">
-          <div className="relative rounded-3xl bg-gradient-to-br from-emerald-500/[0.08] via-violet-500/[0.04] to-fuchsia-500/[0.02] border-2 border-emerald-500/25 p-6 md:p-8 overflow-hidden">
-            <div className="absolute top-0 right-0 w-96 h-96 bg-emerald-500/[0.15] rounded-full blur-3xl -translate-y-1/2 translate-x-1/2 pointer-events-none"></div>
-            <div className="absolute bottom-0 left-0 w-64 h-64 bg-violet-500/[0.1] rounded-full blur-3xl translate-y-1/2 -translate-x-1/2 pointer-events-none"></div>
+          {isPro ? (
+            // PRO VERSION — Full Recovered Revenue
+            <div className="relative rounded-3xl bg-gradient-to-br from-emerald-500/[0.08] via-violet-500/[0.04] to-fuchsia-500/[0.02] border-2 border-emerald-500/25 p-6 md:p-8 overflow-hidden">
+              <div className="absolute top-0 right-0 w-96 h-96 bg-emerald-500/[0.15] rounded-full blur-3xl -translate-y-1/2 translate-x-1/2 pointer-events-none"></div>
+              <div className="absolute bottom-0 left-0 w-64 h-64 bg-violet-500/[0.1] rounded-full blur-3xl translate-y-1/2 -translate-x-1/2 pointer-events-none"></div>
 
-            <div className="relative">
-              <div className="flex flex-col lg:flex-row lg:items-center justify-between gap-8">
-                <div className="flex-1">
-                  <div className="flex items-center gap-2 mb-4">
-                    <div className="w-10 h-10 rounded-xl bg-emerald-500/15 border border-emerald-500/30 flex items-center justify-center text-emerald-300">
-                      <IconDollar />
+              <div className="relative">
+                <div className="flex flex-col lg:flex-row lg:items-center justify-between gap-8">
+                  <div className="flex-1">
+                    <div className="flex items-center gap-2 mb-4">
+                      <div className="w-10 h-10 rounded-xl bg-emerald-500/15 border border-emerald-500/30 flex items-center justify-center text-emerald-300">
+                        <IconDollar />
+                      </div>
+                      <div>
+                        <p className="text-[11px] font-semibold text-emerald-300/90 uppercase tracking-[0.15em]">
+                          Recovered Revenue
+                        </p>
+                        <p className="text-xs text-slate-500 mt-0.5">Saved this month</p>
+                      </div>
                     </div>
+
+                    <div className="flex items-baseline gap-2 flex-wrap">
+                      <span className="text-5xl md:text-7xl font-black tracking-tight bg-gradient-to-br from-white via-emerald-100 to-emerald-300 bg-clip-text text-transparent">
+                        ${recoveredThisMonth.toFixed(0)}
+                      </span>
+                      <span className="text-slate-500 text-sm">/ month</span>
+                    </div>
+                  </div>
+
+                  <div className="grid grid-cols-3 gap-4 lg:gap-8 lg:border-l lg:border-white/[0.06] lg:pl-8">
                     <div>
-                      <p className="text-[11px] font-semibold text-emerald-300/90 uppercase tracking-[0.15em]">
-                        Recovered Revenue
+                      <p className="text-[10px] font-semibold text-slate-500 uppercase tracking-wider mb-1.5">
+                        Saved
                       </p>
-                      <p className="text-xs text-slate-500 mt-0.5">Saved this month</p>
+                      <p className="text-3xl md:text-4xl font-bold text-emerald-300 tabular-nums">
+                        {savedThisMonth}
+                      </p>
+                      <p className="text-[10px] text-slate-500 mt-1">this month</p>
                     </div>
-                  </div>
 
-                  <div className="flex items-baseline gap-2 flex-wrap">
-                    <span className="text-5xl md:text-7xl font-black tracking-tight bg-gradient-to-br from-white via-emerald-100 to-emerald-300 bg-clip-text text-transparent">
-                      ${recoveredThisMonth.toFixed(0)}
-                    </span>
-                    <span className="text-slate-500 text-sm">/ month</span>
-                  </div>
-                </div>
+                    <div>
+                      <p className="text-[10px] font-semibold text-slate-500 uppercase tracking-wider mb-1.5">
+                        Save Rate
+                      </p>
+                      <p className="text-3xl md:text-4xl font-bold text-violet-300 tabular-nums">
+                        {saveRate}%
+                      </p>
+                      <p className="text-[10px] text-slate-500 mt-1">success rate</p>
+                    </div>
 
-                <div className="grid grid-cols-3 gap-4 lg:gap-8 lg:border-l lg:border-white/[0.06] lg:pl-8">
-                  <div>
-                    <p className="text-[10px] font-semibold text-slate-500 uppercase tracking-wider mb-1.5">
-                      Saved
-                    </p>
-                    <p className="text-3xl md:text-4xl font-bold text-emerald-300 tabular-nums">
-                      {savedThisMonth}
-                    </p>
-                    <p className="text-[10px] text-slate-500 mt-1">this month</p>
-                  </div>
-
-                  <div>
-                    <p className="text-[10px] font-semibold text-slate-500 uppercase tracking-wider mb-1.5">
-                      Save Rate
-                    </p>
-                    <p className="text-3xl md:text-4xl font-bold text-violet-300 tabular-nums">
-                      {saveRate}%
-                    </p>
-                    <p className="text-[10px] text-slate-500 mt-1">success rate</p>
-                  </div>
-
-                  <div>
-                    <p className="text-[10px] font-semibold text-slate-500 uppercase tracking-wider mb-1.5">
-                      All Time
-                    </p>
-                    <p className="text-3xl md:text-4xl font-bold text-white tabular-nums">
-                      ${recoveredAllTime.toFixed(0)}
-                    </p>
-                    <p className="text-[10px] text-slate-500 mt-1">total saved</p>
+                    <div>
+                      <p className="text-[10px] font-semibold text-slate-500 uppercase tracking-wider mb-1.5">
+                        All Time
+                      </p>
+                      <p className="text-3xl md:text-4xl font-bold text-white tabular-nums">
+                        ${recoveredAllTime.toFixed(0)}
+                      </p>
+                      <p className="text-[10px] text-slate-500 mt-1">total saved</p>
+                    </div>
                   </div>
                 </div>
               </div>
             </div>
-          </div>
+          ) : (
+            // STARTER VERSION — Locked Recovered Revenue
+            <div className="relative rounded-3xl bg-gradient-to-br from-slate-700/[0.15] to-slate-900/[0.1] border-2 border-slate-700/40 p-6 md:p-8 overflow-hidden">
+              <div className="relative">
+                <div className="flex flex-col lg:flex-row lg:items-center justify-between gap-8">
+                  <div className="flex-1">
+                    <div className="flex items-center gap-2 mb-4">
+                      <div className="w-10 h-10 rounded-xl bg-slate-500/15 border border-slate-500/30 flex items-center justify-center text-slate-400">
+                        <IconLock />
+                      </div>
+                      <div>
+                        <p className="text-[11px] font-semibold text-slate-400 uppercase tracking-[0.15em]">
+                          Recovered Revenue
+                        </p>
+                        <p className="text-xs text-slate-600 mt-0.5">Pro feature</p>
+                      </div>
+                    </div>
+
+                    <div className="flex items-baseline gap-2 flex-wrap">
+                      <span className="text-5xl md:text-7xl font-black tracking-tight text-slate-700">
+                        $---
+                      </span>
+                      <span className="text-slate-700 text-sm">/ month</span>
+                    </div>
+                  </div>
+
+                  <div className="flex-shrink-0">
+                    <Link href="/pricing">
+                      <button className="px-6 py-3 rounded-xl bg-gradient-to-r from-violet-600 to-fuchsia-500 text-white text-sm font-bold shadow-lg shadow-violet-500/30 hover:scale-[1.02] transition-all whitespace-nowrap">
+                        Upgrade to Pro →
+                      </button>
+                    </Link>
+                  </div>
+                </div>
+              </div>
+            </div>
+          )}
         </section>
 
         {/* Stats Grid */}
@@ -519,8 +613,8 @@ export default function Dashboard() {
           <div className="h-px bg-gradient-to-r from-transparent via-violet-500/50 to-transparent"></div>
 
           <div className="p-6 md:p-8">
-            {/* Header */}
-            <div className="flex flex-col md:flex-row md:items-center justify-between gap-4 mb-6">
+            {/* Header with CSV Export for Pro */}
+            <div className="flex flex-col md:flex-row md:items-start md:justify-between gap-4 mb-6">
               <div className="flex items-center gap-3">
                 <div className="w-9 h-9 rounded-lg bg-white/[0.03] border border-white/[0.08] flex items-center justify-center text-slate-400">
                   <IconInbox />
@@ -537,23 +631,48 @@ export default function Dashboard() {
                 </div>
               </div>
 
-              {/* Quick Stats */}
-              {events.length > 0 && (
-                <div className="flex gap-2 flex-wrap">
-                  <span className="px-3 py-1.5 rounded-lg bg-emerald-500/10 border border-emerald-500/20 text-emerald-300 text-[10px] font-bold uppercase tracking-wider">
-                    {savedEvents.length} Saved
-                  </span>
-                  <span className="px-3 py-1.5 rounded-lg bg-blue-500/10 border border-blue-500/20 text-blue-300 text-[10px] font-bold uppercase tracking-wider">
-                    {pausedEvents.length} Paused
-                  </span>
-                  <span className="px-3 py-1.5 rounded-lg bg-red-500/10 border border-red-500/20 text-red-300 text-[10px] font-bold uppercase tracking-wider">
-                    {cancelledEvents.length} Cancelled
-                  </span>
-                  <span className="px-3 py-1.5 rounded-lg bg-amber-500/10 border border-amber-500/20 text-amber-300 text-[10px] font-bold uppercase tracking-wider">
-                    {pendingEvents.length} Pending
-                  </span>
-                </div>
-              )}
+              <div className="flex flex-wrap gap-2 items-center">
+                {events.length > 0 && (
+                  <>
+                    <span className="px-3 py-1.5 rounded-lg bg-emerald-500/10 border border-emerald-500/20 text-emerald-300 text-[10px] font-bold uppercase tracking-wider">
+                      {savedEvents.length} Saved
+                    </span>
+                    <span className="px-3 py-1.5 rounded-lg bg-blue-500/10 border border-blue-500/20 text-blue-300 text-[10px] font-bold uppercase tracking-wider">
+                      {pausedEvents.length} Paused
+                    </span>
+                    <span className="px-3 py-1.5 rounded-lg bg-red-500/10 border border-red-500/20 text-red-300 text-[10px] font-bold uppercase tracking-wider">
+                      {cancelledEvents.length} Cancelled
+                    </span>
+                  </>
+                )}
+
+                {/* CSV Export — Pro Only */}
+                {isPro && events.length > 0 && (
+                  <button
+                    onClick={exportToCsv}
+                    className="px-4 py-2 rounded-lg text-xs font-bold uppercase tracking-wider text-emerald-300 bg-emerald-500/10 border border-emerald-500/30 hover:bg-emerald-500/20 transition-all flex items-center gap-2"
+                    title="Export as CSV"
+                  >
+                    <svg className="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24" strokeWidth={2.5}>
+                      <path strokeLinecap="round" strokeLinejoin="round" d="M12 10v6m0 0l-3-3m3 3l3-3m2 8H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
+                    </svg>
+                    Export CSV
+                  </button>
+                )}
+
+                {/* Upgrade hint for Starter */}
+                {!isPro && events.length > 0 && (
+                  <Link href="/pricing">
+                    <button
+                      className="px-4 py-2 rounded-lg text-xs font-bold uppercase tracking-wider text-slate-500 bg-white/[0.02] border border-white/[0.06] hover:bg-white/[0.04] transition-all flex items-center gap-2"
+                      title="Upgrade to Pro to export"
+                    >
+                      <IconLock />
+                      Export CSV (Pro)
+                    </button>
+                  </Link>
+                )}
+              </div>
             </div>
 
             {events.length > 0 && (
@@ -577,7 +696,6 @@ export default function Dashboard() {
               <div className="space-y-8">
                 {Object.entries(groupedEvents).map(([dateLabel, dateEvents]) => (
                   <div key={dateLabel}>
-                    {/* Date Separator */}
                     <div className="flex items-center gap-3 mb-4">
                       <span className="text-xs font-bold text-slate-400 uppercase tracking-[0.15em]">
                         {dateLabel}
@@ -588,7 +706,6 @@ export default function Dashboard() {
                       </span>
                     </div>
 
-                    {/* Events */}
                     <div className="space-y-2">
                       {dateEvents.map((event) => {
                         const isSaved = event.offer_accepted === true && event.final_action !== 'paused';
@@ -610,7 +727,6 @@ export default function Dashboard() {
                             className={`group relative pl-4 pr-4 py-4 rounded-xl bg-white/[0.02] border border-white/[0.06] border-l-4 ${borderColor} hover:bg-white/[0.04] transition-all duration-200`}
                           >
                             <div className="flex flex-col md:flex-row md:items-center gap-3 md:gap-4">
-                              {/* Customer */}
                               <div className="flex items-center gap-3 flex-shrink-0 md:w-56">
                                 <div className="w-9 h-9 rounded-full bg-gradient-to-br from-violet-500 to-fuchsia-500 flex items-center justify-center text-xs font-bold text-white flex-shrink-0">
                                   {event.customer_email ? event.customer_email.charAt(0).toUpperCase() : '?'}
@@ -628,7 +744,6 @@ export default function Dashboard() {
                                 </div>
                               </div>
 
-                              {/* Details */}
                               <div className="flex-1 min-w-0 space-y-1.5">
                                 <div className="flex items-center gap-2 flex-wrap">
                                   <span className="text-[10px] font-bold text-slate-500 uppercase tracking-wider">
@@ -662,7 +777,6 @@ export default function Dashboard() {
                                 )}
                               </div>
 
-                              {/* Status */}
                               <div className="flex-shrink-0">
                                 {isSaved && (
                                   <span className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-[10px] font-bold uppercase bg-emerald-500/15 text-emerald-300 border border-emerald-500/25">
