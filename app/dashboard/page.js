@@ -240,7 +240,58 @@ export default function Dashboard() {
       </div>
     );
   }
+  // --- Trial Expired Lock Screen ---
+  if (isTrialExpired) {
+    return (
+      <div className="relative min-h-screen bg-[#05050c] text-white font-sans antialiased overflow-x-hidden">
+        <div className="fixed inset-0 overflow-hidden pointer-events-none">
+          <div className="absolute top-[-30%] left-1/2 -translate-x-1/2 w-[900px] h-[900px] bg-red-600/[0.12] rounded-full blur-[140px]"></div>
+          <div className="absolute bottom-[-30%] left-[-10%] w-[600px] h-[600px] bg-orange-600/[0.08] rounded-full blur-[130px]"></div>
+        </div>
 
+        <div className="relative z-10 min-h-screen flex items-center justify-center px-6 py-16">
+          <div className="max-w-lg w-full text-center">
+            <div className="w-20 h-20 mx-auto rounded-3xl bg-red-500/15 border-2 border-red-500/30 flex items-center justify-center mb-6">
+              <IconWarning />
+            </div>
+
+            <h1 className="text-4xl md:text-5xl font-bold tracking-tight mb-4">
+              Trial expired
+            </h1>
+            <p className="text-slate-400 text-lg mb-8 leading-relaxed">
+              Your 14-day trial has ended. Upgrade to a paid plan to continue accessing your dashboard.
+              Your widget is still collecting data — you're not losing anything.
+            </p>
+
+            <Link href="/pricing">
+              <button className="group relative px-8 py-4 rounded-2xl text-base font-semibold text-white overflow-hidden transition-transform hover:scale-[1.03] mb-4">
+                <div className="absolute inset-0 bg-gradient-to-r from-violet-600 via-violet-500 to-fuchsia-500"></div>
+                <div className="absolute inset-0 rounded-2xl shadow-xl shadow-violet-500/30"></div>
+                <span className="relative flex items-center gap-2">
+                  Upgrade Now
+                  <IconArrowRight />
+                </span>
+              </button>
+            </Link>
+
+            <div className="mt-6">
+              <button
+                onClick={handleLogout}
+                className="text-slate-500 hover:text-slate-300 text-sm transition-colors"
+              >
+                Log Out
+              </button>
+            </div>
+
+            <div className="mt-12 flex items-center justify-center gap-2 text-xs text-slate-600">
+              <IconShield />
+              <span className="tracking-[0.15em] font-mono uppercase">Secured by Supabase RLS</span>
+            </div>
+          </div>
+        </div>
+      </div>
+    );
+  }
   // --- Metrics ---
   const now = new Date();
   const startOfMonth = new Date(now.getFullYear(), now.getMonth(), 1);
@@ -277,6 +328,60 @@ export default function Dashboard() {
   const isActive = status === 'active';
   const isPro = isActive && plan === 'pro';
   const showTrialWarning = isTrial && access.daysLeft > 0 && access.daysLeft <= 7;
+    const showTrialWarning = isTrial && access.daysLeft > 0 && access.daysLeft <= 7;
+
+  // --- Trial Expired Lock Screen ---
+  if (isTrialExpired) {
+    return (
+      <div className="relative min-h-screen bg-[#05050c] text-white font-sans antialiased overflow-x-hidden">
+        <div className="fixed inset-0 overflow-hidden pointer-events-none">
+          <div className="absolute top-[-30%] left-1/2 -translate-x-1/2 w-[900px] h-[900px] bg-red-600/[0.12] rounded-full blur-[140px]"></div>
+          <div className="absolute bottom-[-30%] left-[-10%] w-[600px] h-[600px] bg-orange-600/[0.08] rounded-full blur-[130px]"></div>
+        </div>
+
+        <div className="relative z-10 min-h-screen flex items-center justify-center px-6 py-16">
+          <div className="max-w-lg w-full text-center">
+            <div className="w-20 h-20 mx-auto rounded-3xl bg-red-500/15 border-2 border-red-500/30 flex items-center justify-center mb-6 text-red-400">
+              <IconWarning />
+            </div>
+
+            <h1 className="text-4xl md:text-5xl font-bold tracking-tight mb-4">
+              Trial expired
+            </h1>
+            <p className="text-slate-400 text-lg mb-8 leading-relaxed">
+              Your 14-day trial has ended. Upgrade to a paid plan to continue accessing your dashboard.
+              Your widget is still collecting data — you're not losing anything.
+            </p>
+
+            <Link href="/pricing">
+              <button className="group relative px-8 py-4 rounded-2xl text-base font-semibold text-white overflow-hidden transition-transform hover:scale-[1.03] mb-4 inline-block">
+                <div className="absolute inset-0 bg-gradient-to-r from-violet-600 via-violet-500 to-fuchsia-500"></div>
+                <div className="absolute inset-0 rounded-2xl shadow-xl shadow-violet-500/30"></div>
+                <span className="relative flex items-center gap-2">
+                  Upgrade Now
+                  <IconArrowRight />
+                </span>
+              </button>
+            </Link>
+
+            <div className="mt-6">
+              <button
+                onClick={handleLogout}
+                className="text-slate-500 hover:text-slate-300 text-sm transition-colors"
+              >
+                Log Out
+              </button>
+            </div>
+
+            <div className="mt-12 flex items-center justify-center gap-2 text-xs text-slate-600">
+              <IconShield />
+              <span className="tracking-[0.15em] font-mono uppercase">Secured by Supabase RLS</span>
+            </div>
+          </div>
+        </div>
+      </div>
+    );
+  }
 
   // --- Group events by date ---
   const groupedEvents = (() => {

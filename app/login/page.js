@@ -71,6 +71,18 @@ export default function Login() {
           </button>
         </form>
 
+	<p className="text-white/40 text-sm text-center mt-4">
+	  <Link href="/forgot-password" className="text-indigo-300 hover:text-indigo-200">
+    	Forgot password?
+  	</Link>
+	</p>
+
+	<p className="text-white/40 text-sm text-center mt-6">
+  	  Don't have an account?{' '}
+  	 <Link href="/signup" className="text-indigo-300 hover:text-indigo-200">
+    	   Sign Up
+  	  </Link>
+	</p>
         <p className="text-white/40 text-sm text-center mt-6">
           Don't have an account?{' '}
           <Link href="/signup" className="text-indigo-300 hover:text-indigo-200">
