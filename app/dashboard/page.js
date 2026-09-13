@@ -328,7 +328,6 @@ export default function Dashboard() {
   const isActive = status === 'active';
   const isPro = isActive && plan === 'pro';
   const showTrialWarning = isTrial && access.daysLeft > 0 && access.daysLeft <= 7;
-    const showTrialWarning = isTrial && access.daysLeft > 0 && access.daysLeft <= 7;
 
   // --- Trial Expired Lock Screen ---
   if (isTrialExpired) {
