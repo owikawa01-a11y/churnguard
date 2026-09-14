@@ -38,7 +38,7 @@ const GROQ_MODEL = 'openai/gpt-oss-120b';
 const GROQ_TIMEOUT_MS = 5000;
 const UUID_REGEX = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
 
-// --- Fixed Offer Terms (founder controls, AI phrases) ---
+// --- Fixed Offer Terms (founder controls, AI only phrases) ---
 function getOfferForReason(reason) {
   const r = String(reason).toLowerCase();
 
@@ -69,17 +69,22 @@ function getOfferForReason(reason) {
   return { type: 'discount', terms: '15% off for the next 2 months' };
 }
 
-// --- System Prompt ---
+// --- System Prompt (Improved) ---
 function buildSystemPrompt() {
   return [
-    'You are a warm, honest customer retention specialist writing for a SaaS product.',
+    'You are a world-class Retention Strategist.',
+    'Your job is to write a warm, honest sentence that presents a retention offer to a customer who is about to cancel.',
+    '',
     'CRITICAL RULES:',
-    '- Reply with ONLY one sentence.',
-    '- NEVER invent offers, discounts, or promises beyond what you are given.',
-    '- NEVER use manipulative language, fake urgency, or guilt.',
-    '- Be empathetic and human.',
-    '- Keep it under 40 words.',
-  ].join(' ');
+    '- Reply with ONLY one sentence (ending with a period).',
+    '- Present the EXACT offer terms you were given. Do not change them.',
+    '- Do NOT invent any additional discounts or promises.',
+    '- Do NOT use manipulative language, fake urgency, or guilt.',
+    '- Be warm, human, and respectful of their decision.',
+    '- Keep it under 30 words.',
+    '',
+    'The sentence should make the customer feel valued, not pressured.',
+  ].join('\n');
 }
 
 // ===========================================
@@ -145,7 +150,7 @@ export async function POST(request) {
     const offer = getOfferForReason(reason);
     let offerCopy = "We'd like to offer you " + offer.terms + '.';
 
-    // --- AI Phrases It (with fallback) ---
+    // --- AI Phrases It ---
     let aiSource = 'fallback';
 
     if (GROQ_API_KEY) {
@@ -154,12 +159,15 @@ export async function POST(request) {
         const timeoutId = setTimeout(() => controller.abort(), GROQ_TIMEOUT_MS);
 
         const userContent =
-          'A customer is cancelling. Their reason: "' + reason + '".' +
-          (follow_up_answer ? ' They also said: "' + follow_up_answer + '".' : '') +
-          '\n\nWrite ONE warm, human sentence offering them exactly this, and nothing more: "' +
-          offer.terms + '". ' +
-          'Do not invent any other offer or promise anything beyond this. ' +
-          'Reply with ONLY the sentence, no quotes, no prefix.';
+          'A customer is about to cancel their subscription.' +
+          '\nTheir reason: "' + reason + '".' +
+          (follow_up_answer ? '\nAdditional context: "' + follow_up_answer + '".' : '') +
+          '\n\nWrite ONE warm, human sentence presenting this EXACT offer: "' + offer.terms + '".' +
+          '\n\nRules:' +
+          '\n- Do not change the offer terms.' +
+          '\n- Do not add any other promise or discount.' +
+          '\n- Be respectful. The customer may still choose to cancel.' +
+          '\n- Reply with ONLY the sentence, no quotes, no prefix.';
 
         const groqRes = await fetch(GROQ_API_URL, {
           method: 'POST',
@@ -189,7 +197,7 @@ export async function POST(request) {
             aiSource = 'groq';
           }
         } else {
-          console.error('[ChurnGuard][retention] Groq error status:', groqRes.status);
+          console.error('[ChurnGuard][retention] Groq error | Status:', groqRes.status);
         }
       } catch (err) {
         if (err.name === 'AbortError') {
@@ -212,9 +220,7 @@ export async function POST(request) {
 
     // --- Success ---
     const duration = Date.now() - startTime;
-    console.log(
-      '[ChurnGuard][retention] OK | type=' + offer.type + ' | ai=' + aiSource + ' | ' + duration + 'ms'
-    );
+    console.log('[ChurnGuard][retention] OK | type:', offer.type, '| AI:', aiSource, '|', duration + 'ms');
 
     return jsonResponse({
       success: true,
