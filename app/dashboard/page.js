@@ -190,15 +190,13 @@ export default function Dashboard() {
   };
 
   // ===========================================
-  //  CSV Export — Pro Only
+  //  CSV Export (Pro Only)
   // ===========================================
   const exportToCsv = () => {
     if (events.length === 0) return;
 
-    // Header row
     const headers = ['Date', 'Customer Email', 'Reason', 'Status', 'Offer Shown', 'Customer MRR'];
 
-    // Data rows
     const rows = events.map((e) => {
       let status = 'pending';
       if (e.offer_accepted === true && e.final_action === 'paused') status = 'paused';
@@ -215,10 +213,8 @@ export default function Dashboard() {
       ];
     });
 
-    // Combine
     const csvContent = [headers.join(','), ...rows.map((r) => r.join(','))].join('\n');
 
-    // Download
     const blob = new Blob([csvContent], { type: 'text/csv;charset=utf-8;' });
     const url = URL.createObjectURL(blob);
     const link = document.createElement('a');
@@ -240,59 +236,10 @@ export default function Dashboard() {
       </div>
     );
   }
-  // --- Trial Expired Lock Screen ---
-  if (isTrialExpired) {
-    return (
-      <div className="relative min-h-screen bg-[#05050c] text-white font-sans antialiased overflow-x-hidden">
-        <div className="fixed inset-0 overflow-hidden pointer-events-none">
-          <div className="absolute top-[-30%] left-1/2 -translate-x-1/2 w-[900px] h-[900px] bg-red-600/[0.12] rounded-full blur-[140px]"></div>
-          <div className="absolute bottom-[-30%] left-[-10%] w-[600px] h-[600px] bg-orange-600/[0.08] rounded-full blur-[130px]"></div>
-        </div>
 
-        <div className="relative z-10 min-h-screen flex items-center justify-center px-6 py-16">
-          <div className="max-w-lg w-full text-center">
-            <div className="w-20 h-20 mx-auto rounded-3xl bg-red-500/15 border-2 border-red-500/30 flex items-center justify-center mb-6">
-              <IconWarning />
-            </div>
-
-            <h1 className="text-4xl md:text-5xl font-bold tracking-tight mb-4">
-              Trial expired
-            </h1>
-            <p className="text-slate-400 text-lg mb-8 leading-relaxed">
-              Your 14-day trial has ended. Upgrade to a paid plan to continue accessing your dashboard.
-              Your widget is still collecting data — you're not losing anything.
-            </p>
-
-            <Link href="/pricing">
-              <button className="group relative px-8 py-4 rounded-2xl text-base font-semibold text-white overflow-hidden transition-transform hover:scale-[1.03] mb-4">
-                <div className="absolute inset-0 bg-gradient-to-r from-violet-600 via-violet-500 to-fuchsia-500"></div>
-                <div className="absolute inset-0 rounded-2xl shadow-xl shadow-violet-500/30"></div>
-                <span className="relative flex items-center gap-2">
-                  Upgrade Now
-                  <IconArrowRight />
-                </span>
-              </button>
-            </Link>
-
-            <div className="mt-6">
-              <button
-                onClick={handleLogout}
-                className="text-slate-500 hover:text-slate-300 text-sm transition-colors"
-              >
-                Log Out
-              </button>
-            </div>
-
-            <div className="mt-12 flex items-center justify-center gap-2 text-xs text-slate-600">
-              <IconShield />
-              <span className="tracking-[0.15em] font-mono uppercase">Secured by Supabase RLS</span>
-            </div>
-          </div>
-        </div>
-      </div>
-    );
-  }
-  // --- Metrics ---
+  // ===========================================
+  //  Metrics
+  // ===========================================
   const now = new Date();
   const startOfMonth = new Date(now.getFullYear(), now.getMonth(), 1);
   const todayCount = events.filter(
@@ -320,6 +267,9 @@ export default function Dashboard() {
     ? Math.round((savedEvents.length / decidedEvents.length) * 100)
     : 0;
 
+  // ===========================================
+  //  Account Access
+  // ===========================================
   const access = accountStatus?.access || { canAccess: true, reason: 'new', daysLeft: 0 };
   const plan = accountStatus?.account?.subscription_plan || 'starter';
   const status = accountStatus?.account?.subscription_status || 'trialing';
@@ -329,7 +279,40 @@ export default function Dashboard() {
   const isPro = isActive && plan === 'pro';
   const showTrialWarning = isTrial && access.daysLeft > 0 && access.daysLeft <= 7;
 
-  // --- Trial Expired Lock Screen ---
+  // ===========================================
+  //  Group Events by Date
+  // ===========================================
+  const groupedEvents = (() => {
+    const groups = {};
+    events.forEach((event) => {
+      const d = new Date(event.created_at);
+      const today = new Date();
+      const yesterday = new Date();
+      yesterday.setDate(today.getDate() - 1);
+
+      let label;
+      if (d.toDateString() === today.toDateString()) {
+        label = 'Today';
+      } else if (d.toDateString() === yesterday.toDateString()) {
+        label = 'Yesterday';
+      } else {
+        label = d.toLocaleDateString('en-US', {
+          weekday: 'long',
+          month: 'short',
+          day: 'numeric',
+          year: d.getFullYear() !== today.getFullYear() ? 'numeric' : undefined,
+        });
+      }
+
+      if (!groups[label]) groups[label] = [];
+      groups[label].push(event);
+    });
+    return groups;
+  })();
+
+  // ===========================================
+  //  Trial Expired Lock Screen
+  // ===========================================
   if (isTrialExpired) {
     return (
       <div className="relative min-h-screen bg-[#05050c] text-white font-sans antialiased overflow-x-hidden">
@@ -382,35 +365,9 @@ export default function Dashboard() {
     );
   }
 
-  // --- Group events by date ---
-  const groupedEvents = (() => {
-    const groups = {};
-    events.forEach((event) => {
-      const d = new Date(event.created_at);
-      const today = new Date();
-      const yesterday = new Date();
-      yesterday.setDate(today.getDate() - 1);
-
-      let label;
-      if (d.toDateString() === today.toDateString()) {
-        label = 'Today';
-      } else if (d.toDateString() === yesterday.toDateString()) {
-        label = 'Yesterday';
-      } else {
-        label = d.toLocaleDateString('en-US', {
-          weekday: 'long',
-          month: 'short',
-          day: 'numeric',
-          year: d.getFullYear() !== today.getFullYear() ? 'numeric' : undefined,
-        });
-      }
-
-      if (!groups[label]) groups[label] = [];
-      groups[label].push(event);
-    });
-    return groups;
-  })();
-
+  // ===========================================
+  //  Main Dashboard Render
+  // ===========================================
   return (
     <div className="relative min-h-screen bg-[#05050c] text-white font-sans antialiased overflow-x-hidden">
 
@@ -447,28 +404,6 @@ export default function Dashboard() {
           </div>
         )}
 
-        {/* Trial Expired */}
-        {isTrialExpired && (
-          <div className="mb-8 p-4 rounded-2xl bg-red-500/[0.08] border border-red-500/30 flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4">
-            <div className="flex items-center gap-3">
-              <span className="text-red-400 flex-shrink-0">
-                <IconWarning />
-              </span>
-              <div>
-                <p className="text-sm font-semibold text-red-100">Your trial has expired</p>
-                <p className="text-xs text-red-200/70 mt-0.5">
-                  Upgrade to continue using your dashboard. Your widget is still collecting data.
-                </p>
-              </div>
-            </div>
-            <Link href="/pricing">
-              <button className="px-4 py-2 rounded-xl bg-red-500 hover:bg-red-400 text-white text-xs font-bold transition-all whitespace-nowrap">
-                Upgrade →
-              </button>
-            </Link>
-          </div>
-        )}
-
         {/* Header */}
         <header className="mb-12">
           <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-6">
@@ -497,11 +432,6 @@ export default function Dashboard() {
                   {isActive && !isPro && (
                     <span className="px-2.5 py-1 rounded-full bg-blue-500/15 border border-blue-500/30 text-blue-300 text-[10px] font-bold uppercase tracking-wider">
                       Starter
-                    </span>
-                  )}
-                  {isTrialExpired && (
-                    <span className="px-2.5 py-1 rounded-full bg-red-500/15 border border-red-500/30 text-red-300 text-[10px] font-bold uppercase tracking-wider">
-                      Expired
                     </span>
                   )}
                 </div>
@@ -538,12 +468,9 @@ export default function Dashboard() {
           </div>
         </header>
 
-        {/* =========================================== */}
-        {/* Recovered Revenue Card — Pro Only        */}
-        {/* =========================================== */}
+        {/* Recovered Revenue — Pro Only */}
         <section className="mb-6">
           {isPro ? (
-            // PRO VERSION — Full Recovered Revenue
             <div className="relative rounded-3xl bg-gradient-to-br from-emerald-500/[0.08] via-violet-500/[0.04] to-fuchsia-500/[0.02] border-2 border-emerald-500/25 p-6 md:p-8 overflow-hidden">
               <div className="absolute top-0 right-0 w-96 h-96 bg-emerald-500/[0.15] rounded-full blur-3xl -translate-y-1/2 translate-x-1/2 pointer-events-none"></div>
               <div className="absolute bottom-0 left-0 w-64 h-64 bg-violet-500/[0.1] rounded-full blur-3xl translate-y-1/2 -translate-x-1/2 pointer-events-none"></div>
@@ -573,32 +500,18 @@ export default function Dashboard() {
 
                   <div className="grid grid-cols-3 gap-4 lg:gap-8 lg:border-l lg:border-white/[0.06] lg:pl-8">
                     <div>
-                      <p className="text-[10px] font-semibold text-slate-500 uppercase tracking-wider mb-1.5">
-                        Saved
-                      </p>
-                      <p className="text-3xl md:text-4xl font-bold text-emerald-300 tabular-nums">
-                        {savedThisMonth}
-                      </p>
+                      <p className="text-[10px] font-semibold text-slate-500 uppercase tracking-wider mb-1.5">Saved</p>
+                      <p className="text-3xl md:text-4xl font-bold text-emerald-300 tabular-nums">{savedThisMonth}</p>
                       <p className="text-[10px] text-slate-500 mt-1">this month</p>
                     </div>
-
                     <div>
-                      <p className="text-[10px] font-semibold text-slate-500 uppercase tracking-wider mb-1.5">
-                        Save Rate
-                      </p>
-                      <p className="text-3xl md:text-4xl font-bold text-violet-300 tabular-nums">
-                        {saveRate}%
-                      </p>
+                      <p className="text-[10px] font-semibold text-slate-500 uppercase tracking-wider mb-1.5">Save Rate</p>
+                      <p className="text-3xl md:text-4xl font-bold text-violet-300 tabular-nums">{saveRate}%</p>
                       <p className="text-[10px] text-slate-500 mt-1">success rate</p>
                     </div>
-
                     <div>
-                      <p className="text-[10px] font-semibold text-slate-500 uppercase tracking-wider mb-1.5">
-                        All Time
-                      </p>
-                      <p className="text-3xl md:text-4xl font-bold text-white tabular-nums">
-                        ${recoveredAllTime.toFixed(0)}
-                      </p>
+                      <p className="text-[10px] font-semibold text-slate-500 uppercase tracking-wider mb-1.5">All Time</p>
+                      <p className="text-3xl md:text-4xl font-bold text-white tabular-nums">${recoveredAllTime.toFixed(0)}</p>
                       <p className="text-[10px] text-slate-500 mt-1">total saved</p>
                     </div>
                   </div>
@@ -606,7 +519,6 @@ export default function Dashboard() {
               </div>
             </div>
           ) : (
-            // STARTER VERSION — Locked Recovered Revenue
             <div className="relative rounded-3xl bg-gradient-to-br from-slate-700/[0.15] to-slate-900/[0.1] border-2 border-slate-700/40 p-6 md:p-8 overflow-hidden">
               <div className="relative">
                 <div className="flex flex-col lg:flex-row lg:items-center justify-between gap-8">
@@ -616,21 +528,15 @@ export default function Dashboard() {
                         <IconLock />
                       </div>
                       <div>
-                        <p className="text-[11px] font-semibold text-slate-400 uppercase tracking-[0.15em]">
-                          Recovered Revenue
-                        </p>
+                        <p className="text-[11px] font-semibold text-slate-400 uppercase tracking-[0.15em]">Recovered Revenue</p>
                         <p className="text-xs text-slate-600 mt-0.5">Pro feature</p>
                       </div>
                     </div>
-
                     <div className="flex items-baseline gap-2 flex-wrap">
-                      <span className="text-5xl md:text-7xl font-black tracking-tight text-slate-700">
-                        $---
-                      </span>
+                      <span className="text-5xl md:text-7xl font-black tracking-tight text-slate-700">$---</span>
                       <span className="text-slate-700 text-sm">/ month</span>
                     </div>
                   </div>
-
                   <div className="flex-shrink-0">
                     <Link href="/pricing">
                       <button className="px-6 py-3 rounded-xl bg-gradient-to-r from-violet-600 to-fuchsia-500 text-white text-sm font-bold shadow-lg shadow-violet-500/30 hover:scale-[1.02] transition-all whitespace-nowrap">
@@ -650,9 +556,7 @@ export default function Dashboard() {
             <div className="absolute top-0 right-0 w-40 h-40 bg-violet-500/[0.08] rounded-full blur-3xl -translate-y-1/2 translate-x-1/2 group-hover:bg-violet-500/[0.15] transition-all duration-500"></div>
             <div className="relative">
               <div className="flex items-center justify-between mb-6">
-                <span className="text-[10px] font-semibold text-slate-500 uppercase tracking-[0.15em]">
-                  Total Cancellations
-                </span>
+                <span className="text-[10px] font-semibold text-slate-500 uppercase tracking-[0.15em]">Total Cancellations</span>
                 <div className="w-9 h-9 rounded-lg bg-violet-500/[0.08] border border-violet-500/15 flex items-center justify-center text-violet-300">
                   <IconTrend />
                 </div>
@@ -666,9 +570,7 @@ export default function Dashboard() {
             <div className="absolute top-0 right-0 w-40 h-40 bg-emerald-500/[0.08] rounded-full blur-3xl -translate-y-1/2 translate-x-1/2 group-hover:bg-emerald-500/[0.15] transition-all duration-500"></div>
             <div className="relative">
               <div className="flex items-center justify-between mb-6">
-                <span className="text-[10px] font-semibold text-slate-500 uppercase tracking-[0.15em]">
-                  Today
-                </span>
+                <span className="text-[10px] font-semibold text-slate-500 uppercase tracking-[0.15em]">Today</span>
                 <div className="w-9 h-9 rounded-lg bg-emerald-500/[0.08] border border-emerald-500/15 flex items-center justify-center text-emerald-300">
                   <IconSpark />
                 </div>
@@ -682,9 +584,7 @@ export default function Dashboard() {
             <div className="absolute top-0 right-0 w-40 h-40 bg-amber-500/[0.06] rounded-full blur-3xl -translate-y-1/2 translate-x-1/2 group-hover:bg-amber-500/[0.12] transition-all duration-500"></div>
             <div className="relative">
               <div className="flex items-center justify-between mb-6">
-                <span className="text-[10px] font-semibold text-slate-500 uppercase tracking-[0.15em]">
-                  Public Key
-                </span>
+                <span className="text-[10px] font-semibold text-slate-500 uppercase tracking-[0.15em]">Public Key</span>
                 <div className="w-9 h-9 rounded-lg bg-amber-500/[0.08] border border-amber-500/15 flex items-center justify-center text-amber-300">
                   <IconKey />
                 </div>
@@ -717,16 +617,14 @@ export default function Dashboard() {
           <div className="h-px bg-gradient-to-r from-transparent via-violet-500/50 to-transparent"></div>
 
           <div className="p-6 md:p-8">
-            {/* Header with CSV Export for Pro */}
+            {/* Header */}
             <div className="flex flex-col md:flex-row md:items-start md:justify-between gap-4 mb-6">
               <div className="flex items-center gap-3">
                 <div className="w-9 h-9 rounded-lg bg-white/[0.03] border border-white/[0.08] flex items-center justify-center text-slate-400">
                   <IconInbox />
                 </div>
                 <div>
-                  <h2 className="text-lg font-semibold text-white tracking-tight">
-                    Cancellation Reasons
-                  </h2>
+                  <h2 className="text-lg font-semibold text-white tracking-tight">Cancellation Reasons</h2>
                   <p className="text-xs text-slate-500 mt-0.5">
                     {events.length === 0
                       ? 'No feedback yet'
@@ -750,7 +648,6 @@ export default function Dashboard() {
                   </>
                 )}
 
-                {/* CSV Export — Pro Only */}
                 {isPro && events.length > 0 && (
                   <button
                     onClick={exportToCsv}
@@ -764,7 +661,6 @@ export default function Dashboard() {
                   </button>
                 )}
 
-                {/* Upgrade hint for Starter */}
                 {!isPro && events.length > 0 && (
                   <Link href="/pricing">
                     <button
@@ -850,9 +746,7 @@ export default function Dashboard() {
 
                               <div className="flex-1 min-w-0 space-y-1.5">
                                 <div className="flex items-center gap-2 flex-wrap">
-                                  <span className="text-[10px] font-bold text-slate-500 uppercase tracking-wider">
-                                    Reason:
-                                  </span>
+                                  <span className="text-[10px] font-bold text-slate-500 uppercase tracking-wider">Reason:</span>
                                   <span className="inline-block px-2.5 py-1 rounded-md text-xs font-medium bg-white/[0.04] text-slate-200 border border-white/[0.06]">
                                     {event.initial_reason || event.reason || 'N/A'}
                                   </span>
@@ -871,12 +765,8 @@ export default function Dashboard() {
 
                                 {event.offer_shown && (
                                   <div className="flex items-center gap-2 flex-wrap pt-1">
-                                    <span className="text-[10px] font-bold text-slate-500 uppercase tracking-wider">
-                                      Offer:
-                                    </span>
-                                    <span className="text-[11px] text-emerald-300/80">
-                                      {event.offer_shown}
-                                    </span>
+                                    <span className="text-[10px] font-bold text-slate-500 uppercase tracking-wider">Offer:</span>
+                                    <span className="text-[11px] text-emerald-300/80">{event.offer_shown}</span>
                                   </div>
                                 )}
                               </div>
