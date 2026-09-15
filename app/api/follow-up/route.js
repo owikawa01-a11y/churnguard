@@ -1,11 +1,11 @@
 // ===========================================
 //  ChurnGuard API - Follow-up Route
-//  Generates AI follow-up question using Groq
-//  Optimized for speed (shorter prompt + fewer tokens)
+//  Generates AI follow-up question + sends email notification
 // ===========================================
 
 import { createClient } from '@supabase/supabase-js';
 import { followUpRatelimit, getClientIP } from '../../../lib/ratelimit';
+import { sendCancellationAlert } from '../../../lib/sendEmail';
 
 // --- Environment Variables ---
 const SUPABASE_URL = process.env.NEXT_PUBLIC_SUPABASE_URL;
@@ -36,9 +36,8 @@ const errorResponse = (message, status = 500, code = 'ERROR') =>
 const GROQ_API_URL = 'https://api.groq.com/openai/v1/chat/completions';
 const GROQ_MODEL = 'openai/gpt-oss-120b';
 const GROQ_TIMEOUT_MS = 5000;
-const UUID_REGEX = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
 
-// --- System Prompt (Optimized for Speed) ---
+// --- System Prompt ---
 function buildSystemPrompt() {
   return [
     'You are an expert Retention Strategist.',
@@ -119,16 +118,29 @@ export async function POST(request) {
       ? customer_email.trim().slice(0, 200)
       : null;
 
-    // --- Find Widget ---
+    // --- Find Widget (with account_id for email) ---
     const { data: widget, error: widgetError } = await supabase
       .from('widgets')
-      .select('id')
+      .select('id, account_id')
       .eq('public_key', cleanPublicKey)
       .single();
 
     if (widgetError || !widget) {
       console.warn('[ChurnGuard][follow-up] Widget not found | Key:', cleanPublicKey.slice(0, 8) + '...');
       return errorResponse('Invalid widget key', 404, 'WIDGET_NOT_FOUND');
+    }
+
+    // --- Get Account Owner Email ---
+    let ownerEmail = null;
+    try {
+      const { data: account } = await supabase
+        .from('accounts')
+        .select('email')
+        .eq('id', widget.account_id)
+        .single();
+      if (account?.email) ownerEmail = account.email;
+    } catch (err) {
+      console.error('[ChurnGuard][follow-up] Failed to fetch account email:', err.message);
     }
 
     // --- Generate AI Question ---
@@ -182,8 +194,6 @@ export async function POST(request) {
           console.error('[ChurnGuard][follow-up] Groq failed:', err.message);
         }
       }
-    } else {
-      console.warn('[ChurnGuard][follow-up] GROQ_API_KEY missing, using fallback');
     }
 
     // --- Save Event ---
@@ -203,9 +213,25 @@ export async function POST(request) {
       return errorResponse('Could not save event', 500, 'DB_ERROR');
     }
 
+    // --- Send Email Notification (non-blocking) ---
+    if (ownerEmail) {
+      sendCancellationAlert({
+        toEmail: ownerEmail,
+        customerEmail: cleanEmail,
+        reason: cleanReason,
+        aiQuestion: followUpQuestion,
+        followUpAnswer: null,
+        offerShown: null,
+      }).catch((err) => {
+        console.error('[ChurnGuard][follow-up] Email failed:', err.message);
+      });
+    } else {
+      console.warn('[ChurnGuard][follow-up] No owner email, skipping notification');
+    }
+
     // --- Success ---
     const duration = Date.now() - startTime;
-    console.log('[ChurnGuard][follow-up] OK | AI:', aiSource, '|', duration + 'ms');
+    console.log('[ChurnGuard][follow-up] OK | AI:', aiSource, '| Email:', ownerEmail ? 'sent' : 'skipped', '|', duration + 'ms');
 
     return jsonResponse({
       success: true,
