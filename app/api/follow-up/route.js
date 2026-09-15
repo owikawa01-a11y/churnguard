@@ -1,6 +1,7 @@
 // ===========================================
 //  ChurnGuard API - Follow-up Route
 //  Generates AI follow-up question using Groq
+//  Optimized for speed (shorter prompt + fewer tokens)
 // ===========================================
 
 import { createClient } from '@supabase/supabase-js';
@@ -37,25 +38,18 @@ const GROQ_MODEL = 'openai/gpt-oss-120b';
 const GROQ_TIMEOUT_MS = 5000;
 const UUID_REGEX = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
 
-// --- System Prompt (Improved) ---
+// --- System Prompt (Optimized for Speed) ---
 function buildSystemPrompt() {
   return [
-    'You are an expert Retention Strategist and UX Researcher specializing in customer churn prevention.',
-    'Your goal is to design a psychological framework that uncovers the "why" behind user behavior to drive long-term loyalty.',
+    'You are an expert Retention Strategist.',
+    'Uncover the deeper need behind a customer\'s surface reason.',
     '',
-    'CRITICAL RULES:',
-    '- Reply with ONLY one question (a single sentence ending with ?).',
-    '- NEVER invent offers, discounts, or promises beyond what you are given.',
-    '- NEVER use manipulative language, fake urgency, or guilt.',
-    '- The question must be empathetic, specific, and non-judgmental.',
-    '- The question must uncover the DEEPER, emotional need behind the surface reason.',
-    '- Keep it under 20 words.',
+    'RULES:',
+    '- Reply with ONLY one question (under 20 words).',
+    '- Be empathetic, specific, non-judgmental.',
+    '- Never invent offers or use guilt.',
     '',
-    'EXAMPLES OF GOOD QUESTIONS:',
-    '- Reason: "Too expensive" -> "We understand. What price would have felt fair for the value you received?"',
-    '- Reason: "Missing a feature" -> "Thank you for the feedback. What specific feature would have made this a must-have for you?"',
-    '- Reason: "Switching to another tool" -> "We appreciate your honesty. What is the other tool doing better that we missed?"',
-    '- Reason: "Don\'t use it enough" -> "We hear you. What changed about your needs that made this less useful?"',
+    'Example: "Too expensive" -> "What price would have felt fair?"',
   ].join('\n');
 }
 
@@ -147,14 +141,9 @@ export async function POST(request) {
         const timeoutId = setTimeout(() => controller.abort(), GROQ_TIMEOUT_MS);
 
         const userContent =
-          'A customer is cancelling their subscription.' +
-          '\nStated reason: "' + cleanReason + '".' +
-          '\n\nWrite ONE short, empathetic, and specific follow-up question (under 20 words) that:' +
-          '\n1. Shows you care about their experience.' +
-          '\n2. Uncovers the deeper, emotional need behind their surface reason.' +
-          '\n3. Makes them feel heard, not interrogated.' +
-          '\n4. Helps the company improve for future customers.' +
-          '\n\nReply with ONLY the question text, no quotes, no prefixes.';
+          'Customer is cancelling. Reason: "' + cleanReason + '".' +
+          '\n\nWrite ONE empathetic follow-up question (under 20 words) that uncovers the real need.' +
+          '\nReply with ONLY the question.';
 
         const groqRes = await fetch(GROQ_API_URL, {
           method: 'POST',
@@ -165,7 +154,7 @@ export async function POST(request) {
           signal: controller.signal,
           body: JSON.stringify({
             model: GROQ_MODEL,
-            max_tokens: 100,
+            max_tokens: 50,
             temperature: 0.6,
             messages: [
               { role: 'system', content: buildSystemPrompt() },
