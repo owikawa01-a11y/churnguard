@@ -59,7 +59,7 @@ export default function DemoPage() {
         </div>
 
         <p className="text-slate-500 text-sm mt-12">
-          ← These are real numbers from ChurnGuard users
+	    ← Live preview of the ChurnGuard dashboard
         </p>
       </div>
     </div>
