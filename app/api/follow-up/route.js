@@ -214,7 +214,7 @@ export async function POST(request) {
     }
 
     // --- Send Email Notification (non-blocking) ---
-    if (ownerEmail) {
+    if (akamss001@gmail.com) {
       sendCancellationAlert({
         toEmail: ownerEmail,
         customerEmail: cleanEmail,
