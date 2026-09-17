@@ -118,7 +118,7 @@ export async function POST(request) {
       ? customer_email.trim().slice(0, 200)
       : null;
 
-    // --- Find Widget (with account_id for email) ---
+    // --- Find Widget ---
     const { data: widget, error: widgetError } = await supabase
       .from('widgets')
       .select('id, account_id')
@@ -213,31 +213,42 @@ export async function POST(request) {
       return errorResponse('Could not save event', 500, 'DB_ERROR');
     }
 
-    // --- Send Email Notification (non-blocking) ---
-    if (akamss001@gmail.com) {
-      sendCancellationAlert({
-        toEmail: ownerEmail,
-        customerEmail: cleanEmail,
-        reason: cleanReason,
-        aiQuestion: followUpQuestion,
-        followUpAnswer: null,
-        offerShown: null,
-      }).catch((err) => {
+    // --- Send Email Notification (MUST await for Vercel!) ---
+    let emailSent = false;
+    if (ownerEmail) {
+      try {
+        console.log('[ChurnGuard][follow-up] Sending email to:', ownerEmail);
+        const emailResult = await sendCancellationAlert({
+          toEmail: ownerEmail,
+          customerEmail: cleanEmail,
+          reason: cleanReason,
+          aiQuestion: followUpQuestion,
+          followUpAnswer: null,
+          offerShown: null,
+        });
+        emailSent = emailResult.success;
+        console.log('[ChurnGuard][follow-up] Email result:', emailResult);
+      } catch (err) {
         console.error('[ChurnGuard][follow-up] Email failed:', err.message);
-      });
+      }
     } else {
       console.warn('[ChurnGuard][follow-up] No owner email, skipping notification');
     }
 
     // --- Success ---
     const duration = Date.now() - startTime;
-    console.log('[ChurnGuard][follow-up] OK | AI:', aiSource, '| Email:', ownerEmail ? 'sent' : 'skipped', '|', duration + 'ms');
+    console.log(
+      '[ChurnGuard][follow-up] OK | AI:', aiSource,
+      '| Email:', emailSent ? 'sent' : 'failed/skipped',
+      '|', duration + 'ms'
+    );
 
     return jsonResponse({
       success: true,
       event_id: event.id,
       question: followUpQuestion,
       source: aiSource,
+      email_sent: emailSent,
     });
   } catch (err) {
     console.error('[ChurnGuard][follow-up] Unexpected error:', err);
