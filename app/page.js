@@ -1,3 +1,4 @@
+"use client";
 import Link from 'next/link';
 
 // ===========================================
@@ -60,14 +61,9 @@ const IconRocket = () => (
     <path strokeLinecap="round" strokeLinejoin="round" d="M13 10V3L4 14h7v7l9-11h-7z" />
   </svg>
 );
-const IconShield = () => (
-  <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24" strokeWidth={1.8}>
-    <path strokeLinecap="round" strokeLinejoin="round" d="M9 12l2 2 4-4m5.618-4.016A11.955 11.955 0 0112 2.944a11.955 11.955 0 01-8.618 3.04A12.02 12.02 0 003 9c0 5.591 3.824 10.29 9 11.622 5.176-1.332 9-6.03 9-11.622 0-1.042-.133-2.052-.382-3.016z" />
-  </svg>
-);
-const IconStar = () => (
-  <svg className="w-4 h-4 fill-amber-400" viewBox="0 0 20 20">
-    <path d="M10 15l-5.878 3.09 1.123-6.545L.489 6.91l6.572-.955L10 0l2.939 5.955 6.572.955-4.756 4.635 1.123 6.545z" />
+const IconSpark = () => (
+  <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24" strokeWidth={2}>
+    <path strokeLinecap="round" strokeLinejoin="round" d="M5 3v4M3 5h4M6 17v4m-2-2h4m5-16l2.286 6.857L21 12l-5.714 2.143L13 21l-2.286-6.857L5 12l5.714-2.143L13 3z" />
   </svg>
 );
 
@@ -75,12 +71,19 @@ const IconStar = () => (
 //  Main Page
 // ===========================================
 export default function Home() {
+  const bookInstallation = () => {
+    const subject = encodeURIComponent('RetainPulse — Book my installation');
+    const body = encodeURIComponent(
+      `Hi,\n\nI'm interested in the RetainPulse Founding Member offer.\n\nMy SaaS:\nMy MRR range:\nMy cancellation flow today:\n\nThanks!`
+    );
+    window.location.href = `mailto:RetainPulse+akamss001@gmail.com?subject=${subject}&body=${body}`;
+  };
+
   return (
     <div className="relative min-h-screen bg-[#05050c] text-white font-sans antialiased overflow-x-hidden">
 
       {/* Background layers */}
       <div className="fixed inset-0 overflow-hidden pointer-events-none">
-        {/* Grid pattern */}
         <div
           className="absolute inset-0 opacity-[0.15]"
           style={{
@@ -91,7 +94,6 @@ export default function Home() {
             WebkitMaskImage: "radial-gradient(ellipse at 50% 0%, black 40%, transparent 75%)",
           }}
         />
-        {/* Gradient orbs */}
         <div className="absolute top-[-25%] left-1/2 -translate-x-1/2 w-[1100px] h-[1100px] bg-violet-600/[0.14] rounded-full blur-[160px]"></div>
         <div className="absolute top-[35%] right-[-15%] w-[700px] h-[700px] bg-fuchsia-600/[0.09] rounded-full blur-[140px]"></div>
         <div className="absolute bottom-[-15%] left-[-10%] w-[700px] h-[700px] bg-emerald-600/[0.05] rounded-full blur-[130px]"></div>
@@ -118,17 +120,17 @@ export default function Home() {
             </div>
 
             <div className="flex items-center gap-2">
-              <Link href="/login">
+              <Link href="/demo">
                 <button className="hidden sm:block px-4 py-2 text-sm text-slate-300 hover:text-white transition-colors">
-                  Log in
+                  Live demo
                 </button>
               </Link>
-              <Link href="/signup">
+              <Link href="/pricing">
                 <button className="group relative px-5 py-2.5 rounded-xl text-sm font-semibold text-white overflow-hidden">
                   <div className="absolute inset-0 bg-gradient-to-r from-violet-600 to-fuchsia-500"></div>
                   <div className="absolute inset-0 bg-gradient-to-r from-violet-500 to-fuchsia-400 opacity-0 group-hover:opacity-100 transition-opacity"></div>
                   <span className="relative flex items-center gap-1.5">
-                    Start free
+                    Book installation
                     <IconArrowRight />
                   </span>
                 </button>
@@ -139,12 +141,9 @@ export default function Home() {
 
         {/* ═══════════ Hero ═══════════ */}
         <section className="max-w-6xl mx-auto px-6 pt-20 md:pt-28 pb-20 text-center">
-          <div className="inline-flex items-center gap-2.5 px-4 py-2 rounded-full bg-white/[0.03] border border-white/[0.08] text-slate-300 text-xs font-medium mb-8 backdrop-blur-sm">
-            <span className="relative flex w-2 h-2">
-              <span className="absolute inset-0 rounded-full bg-emerald-400 animate-ping opacity-75"></span>
-              <span className="relative w-2 h-2 rounded-full bg-emerald-400"></span>
-            </span>
-            <span>14-day free trial · No credit card required</span>
+          <div className="inline-flex items-center gap-2.5 px-4 py-2 rounded-full bg-amber-500/10 border border-amber-500/20 text-amber-300 text-xs font-semibold tracking-wider uppercase mb-8">
+            <IconSpark />
+            <span>Founding Members · 5 spots only</span>
           </div>
 
           <h1 className="text-5xl sm:text-6xl md:text-7xl lg:text-[5.5rem] font-bold tracking-[-0.03em] leading-[0.98] mb-7">
@@ -158,40 +157,41 @@ export default function Home() {
           </h1>
 
           <p className="text-lg md:text-xl text-slate-400 max-w-2xl mx-auto leading-relaxed mb-10">
-            RetainPulse asks your customers the right questions when they cancel — and gives them one
-            reason to stay. All in one line of code.
+            I personally install RetainPulse on your site within 48 hours — then manage it for 30 days.
+            You see exactly why customers cancel, and get a real shot at keeping some of them.
           </p>
 
           <div className="flex flex-col sm:flex-row items-center justify-center gap-3 mb-8">
-            <Link href="/signup">
-              <button className="group relative px-7 py-4 rounded-2xl text-base font-semibold text-white overflow-hidden transition-transform hover:scale-[1.02] active:scale-[0.98] shadow-2xl shadow-violet-500/30">
-                <div className="absolute inset-0 bg-gradient-to-r from-violet-600 via-violet-500 to-fuchsia-500"></div>
-                <div className="absolute inset-0 opacity-0 group-hover:opacity-100 bg-gradient-to-r from-fuchsia-500 via-violet-500 to-violet-600 transition-opacity duration-300"></div>
-                <span className="relative flex items-center gap-2">
-                  Start free — 5 min setup
-                  <IconArrowRight />
-                </span>
+            <button
+              onClick={bookInstallation}
+              className="group relative px-7 py-4 rounded-2xl text-base font-semibold text-white overflow-hidden transition-transform hover:scale-[1.02] active:scale-[0.98] shadow-2xl shadow-violet-500/30"
+            >
+              <div className="absolute inset-0 bg-gradient-to-r from-violet-600 via-violet-500 to-fuchsia-500"></div>
+              <div className="absolute inset-0 opacity-0 group-hover:opacity-100 bg-gradient-to-r from-fuchsia-500 via-violet-500 to-violet-600 transition-opacity duration-300"></div>
+              <span className="relative flex items-center gap-2">
+                Book my installation — $249
+                <IconArrowRight />
+              </span>
+            </button>
+            <Link href="/demo">
+              <button className="px-7 py-4 rounded-2xl text-base font-medium text-slate-200 bg-white/[0.03] border border-white/[0.08] hover:bg-white/[0.06] hover:border-white/[0.16] transition-all backdrop-blur-sm">
+                See the live demo
               </button>
             </Link>
-            <a href="#how-it-works">
-              <button className="px-7 py-4 rounded-2xl text-base font-medium text-slate-200 bg-white/[0.03] border border-white/[0.08] hover:bg-white/[0.06] hover:border-white/[0.16] transition-all backdrop-blur-sm">
-                See how it works
-              </button>
-            </a>
           </div>
 
-          <div className="flex items-center justify-center gap-6 text-xs text-slate-500">
+          <div className="flex items-center justify-center gap-6 text-xs text-slate-500 flex-wrap">
             <div className="flex items-center gap-1.5">
               <IconCheck className="w-3.5 h-3.5 text-emerald-400" />
-              <span>No sales calls</span>
+              <span>48-hour setup</span>
             </div>
             <div className="flex items-center gap-1.5">
               <IconCheck className="w-3.5 h-3.5 text-emerald-400" />
-              <span>Cancel anytime</span>
+              <span>No dev work needed</span>
             </div>
             <div className="flex items-center gap-1.5">
               <IconCheck className="w-3.5 h-3.5 text-emerald-400" />
-              <span>Free 14 days</span>
+              <span>You own everything</span>
             </div>
           </div>
         </section>
@@ -247,18 +247,18 @@ export default function Home() {
           <div className="max-w-3xl mx-auto text-center mb-16">
             <p className="text-xs font-semibold text-violet-400 uppercase tracking-[0.25em] mb-4">How it works</p>
             <h2 className="text-4xl md:text-5xl font-bold tracking-[-0.02em] leading-[1.05] mb-6">
-              Up and running in under 5 minutes
+              I install it. You watch it work.
             </h2>
             <p className="text-slate-400 text-lg leading-relaxed">
-              No SDK. No sales calls. No backend changes. Just one script tag.
+              No SDK. No dev sprint. No backend changes. I do the entire setup for you.
             </p>
           </div>
 
           <div className="grid grid-cols-1 md:grid-cols-3 gap-5">
             {[
-              { num: "01", icon: <IconBolt />, color: "violet", title: "Paste one script tag", desc: "Add a single line to your app. No SDK, no backend changes, no dev sprint." },
+              { num: "01", icon: <IconBolt />, color: "violet", title: "I install it (48 hours)", desc: "You give me access. I install the widget, connect it to your cancellation flow, and test it end-to-end." },
               { num: "02", icon: <IconBrain />, color: "fuchsia", title: "AI asks the right question", desc: "When someone clicks cancel, RetainPulse asks a smart, contextual follow-up — not a generic survey." },
-              { num: "03", icon: <IconRocket />, color: "emerald", title: "Save them with one offer", desc: "Show a single, reason-matched retention offer — and watch your save rate climb." },
+              { num: "03", icon: <IconRocket />, color: "emerald", title: "I manage it for 30 days", desc: "I monitor results, tweak the retention offers, and send you weekly insights — for 30 days." },
             ].map((step) => (
               <div key={step.num} className="relative p-8 rounded-3xl bg-gradient-to-br from-white/[0.03] to-white/[0.01] border border-white/[0.06] overflow-hidden">
                 <div className="absolute top-5 right-6 text-7xl font-black text-white/[0.03] leading-none select-none">
@@ -277,6 +277,9 @@ export default function Home() {
 
           {/* Code block */}
           <div className="mt-12 max-w-3xl mx-auto">
+            <p className="text-center text-xs text-slate-500 mb-3">
+              Or if you prefer to install it yourself — one script tag:
+            </p>
             <div className="rounded-2xl bg-black/50 border border-white/[0.06] overflow-hidden shadow-2xl shadow-black/50">
               <div className="flex items-center gap-1.5 px-4 py-3 border-b border-white/[0.06] bg-white/[0.02]">
                 <div className="w-2.5 h-2.5 rounded-full bg-red-500/70"></div>
@@ -285,7 +288,7 @@ export default function Home() {
                 <span className="ml-3 text-xs text-slate-500 font-mono">install.html</span>
               </div>
               <pre className="p-5 text-xs font-mono text-slate-300 overflow-x-auto leading-relaxed">
-{`<script src="https://retainpulse.com/widget.js"></script>
+{`<script src="https://retainpulse.pro/widget.js"></script>
 <script>
   window.RetainPulseConfig = {
     publicKey: "your_public_key"
@@ -302,9 +305,9 @@ export default function Home() {
           <div className="grid grid-cols-2 md:grid-cols-4 gap-6">
             {[
               { value: "70%", label: "of churn is silent" },
-              { value: "5 min", label: "average setup time" },
-              { value: "1 line", label: "of code to install" },
-              { value: "30 days", label: "to see real signal" },
+              { value: "48h", label: "installation time" },
+              { value: "30 days", label: "hands-on management" },
+              { value: "$0", label: "monthly fees" },
             ].map((stat, i) => (
               <div key={i} className="text-center p-6 rounded-2xl bg-white/[0.02] border border-white/[0.06]">
                 <div className="text-3xl md:text-4xl font-bold tracking-tight bg-gradient-to-b from-white to-slate-400 bg-clip-text text-transparent mb-1.5">
@@ -319,7 +322,7 @@ export default function Home() {
         {/* ═══════════ Features ═══════════ */}
         <section id="features" className="max-w-6xl mx-auto px-6 py-24 border-t border-white/[0.04]">
           <div className="max-w-3xl mx-auto text-center mb-16">
-            <p className="text-xs font-semibold text-violet-400 uppercase tracking-[0.25em] mb-4">Built for indie SaaS</p>
+            <p className="text-xs font-semibold text-violet-400 uppercase tracking-[0.25em] mb-4">What's included</p>
             <h2 className="text-4xl md:text-5xl font-bold tracking-[-0.02em] leading-[1.05] mb-6">
               Everything you need.
               <br />
@@ -329,12 +332,12 @@ export default function Home() {
 
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-5">
             {[
+              { title: 'Personal installation', desc: 'I install it myself within 48 hours. No dev work needed from you.' },
               { title: 'AI follow-up questions', desc: 'Goes deeper than the first reason. Understands the real why behind every cancellation.' },
               { title: 'One retention offer', desc: 'Reason-matched and compliant with California ARA 2025. No dark patterns.' },
               { title: 'Recovered Revenue tracking', desc: 'See exactly how much MRR you saved this month, in one clean number.' },
               { title: 'Save rate analytics', desc: 'Track the percentage of cancel attempts you actually save — per reason.' },
-              { title: 'Zero-config install', desc: 'One script tag. Works with any frontend, any stack, any framework.' },
-              { title: 'Dashboard, not a data dump', desc: 'Clean insights you can act on. Not another spreadsheet to decode.' },
+              { title: '30-day management', desc: 'I monitor, tweak, and send weekly insights. Direct access to me — no chatbot.' },
             ].map((feature, i) => (
               <div
                 key={i}
@@ -350,92 +353,65 @@ export default function Home() {
           </div>
         </section>
 
-        {/* ═══════════ Testimonials ═══════════ */}
-        <section className="max-w-6xl mx-auto px-6 py-24 border-t border-white/[0.04]">
-          <div className="max-w-3xl mx-auto text-center mb-16">
-            <p className="text-xs font-semibold text-violet-400 uppercase tracking-[0.25em] mb-4">Founders say</p>
-            <h2 className="text-4xl md:text-5xl font-bold tracking-[-0.02em] leading-[1.05]">
-              Built for people who ship
-            </h2>
-          </div>
-
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-5">
-            {[
-              { quote: "Finally I know why people leave. Turns out my onboarding was the real problem — not the price.", name: "Sarah K.", role: "Founder, MicroSaaS" },
-              { quote: "Set it up on a Friday. By Monday I'd already saved two customers I would have lost silently.", name: "Marcus T.", role: "Solo founder" },
-              { quote: "The AI question is the killer feature. It surfaces the reason behind the reason.", name: "Priya R.", role: "Bootstrapper" },
-            ].map((t, i) => (
-              <div key={i} className="p-6 rounded-2xl bg-white/[0.02] border border-white/[0.06]">
-                <div className="flex gap-1 mb-4">
-                  {[...Array(5)].map((_, j) => <IconStar key={j} />)}
-                </div>
-                <p className="text-sm text-slate-300 leading-relaxed mb-5">"{t.quote}"</p>
-                <div className="flex items-center gap-3">
-                  <div className="w-9 h-9 rounded-full bg-gradient-to-br from-violet-500 to-fuchsia-500 flex items-center justify-center text-xs font-bold">
-                    {t.name.charAt(0)}
-                  </div>
-                  <div>
-                    <div className="text-sm font-semibold">{t.name}</div>
-                    <div className="text-xs text-slate-500">{t.role}</div>
-                  </div>
-                </div>
-              </div>
-            ))}
-          </div>
-        </section>
-
         {/* ═══════════ Pricing ═══════════ */}
         <section id="pricing" className="max-w-5xl mx-auto px-6 py-24 border-t border-white/[0.04]">
           <div className="max-w-3xl mx-auto text-center mb-16">
             <p className="text-xs font-semibold text-violet-400 uppercase tracking-[0.25em] mb-4">Pricing</p>
             <h2 className="text-4xl md:text-5xl font-bold tracking-[-0.02em] leading-[1.05] mb-6">
-              Simple, honest pricing
+              Founding Member offer
             </h2>
             <p className="text-slate-400 text-lg leading-relaxed">
-              Cheaper than a single lost customer.
+              One-time. No monthly fees. Only 5 spots at this price.
             </p>
           </div>
 
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-6 max-w-3xl mx-auto">
-            <div className="relative p-8 rounded-3xl bg-white/[0.02] border border-white/[0.06] hover:border-white/[0.12] transition-colors">
-              <h3 className="text-xl font-bold mb-1">Starter</h3>
-              <p className="text-sm text-slate-500 mb-6">For indie founders just getting started</p>
-              <div className="flex items-baseline gap-1 mb-2">
-                <span className="text-5xl font-bold tracking-tight">$29</span>
-                <span className="text-slate-500 text-sm">/month</span>
-              </div>
-              <p className="text-xs text-slate-500 mb-6">14-day free trial · Cancel anytime</p>
-              <Link href="/pricing">
-                <button className="w-full py-3.5 rounded-xl text-sm font-semibold bg-white/[0.05] text-white border border-white/[0.08] hover:bg-white/[0.08] hover:border-white/[0.15] transition-all">
-                  Start free trial
-                </button>
-              </Link>
-            </div>
-
-            <div className="relative p-8 rounded-3xl bg-gradient-to-br from-violet-500/[0.10] to-fuchsia-500/[0.04] border-2 border-violet-500/40 shadow-2xl shadow-violet-500/20">
+          <div className="max-w-2xl mx-auto">
+            <div className="relative p-8 md:p-10 rounded-3xl bg-gradient-to-br from-violet-500/[0.10] to-fuchsia-500/[0.04] border-2 border-violet-500/40 shadow-2xl shadow-violet-500/20">
               <div className="absolute -top-3 left-1/2 -translate-x-1/2 px-4 py-1 rounded-full bg-gradient-to-r from-violet-500 to-fuchsia-500 text-white text-[10px] font-bold tracking-widest uppercase shadow-lg">
-                Most popular
+                Founding Member · 50% off
               </div>
-              <h3 className="text-xl font-bold mb-1">Pro</h3>
-              <p className="text-sm text-slate-400 mb-6">For growing SaaS teams</p>
-              <div className="flex items-baseline gap-1 mb-2">
-                <span className="text-5xl font-bold tracking-tight">$79</span>
-                <span className="text-slate-400 text-sm">/month</span>
+
+              <div className="text-center mb-6">
+                <h3 className="text-xl font-bold mb-2">RetainPulse Setup Service</h3>
+                <p className="text-sm text-slate-400">Done-for-you. No SDK. 48 hours.</p>
               </div>
-              <p className="text-xs text-slate-500 mb-6">14-day free trial · Cancel anytime</p>
-              <Link href="/pricing">
-                <button className="w-full py-3.5 rounded-xl text-sm font-semibold bg-gradient-to-r from-violet-600 via-violet-500 to-fuchsia-500 text-white shadow-lg shadow-violet-500/30 hover:shadow-violet-500/50 hover:scale-[1.02] transition-all">
-                  Start free trial
-                </button>
-              </Link>
+
+              <div className="text-center mb-8">
+                <div className="flex items-baseline justify-center gap-2">
+                  <span className="text-slate-500 line-through text-2xl">$499</span>
+                  <span className="text-5xl font-bold tracking-tight bg-gradient-to-r from-violet-400 to-fuchsia-400 bg-clip-text text-transparent">$249</span>
+                </div>
+                <p className="text-xs text-slate-500 mt-2">One-time · No recurring fees</p>
+              </div>
+
+              <div className="grid grid-cols-2 gap-4 mb-8">
+                <div className="rounded-2xl bg-white/[0.03] border border-white/[0.08] p-4 text-center">
+                  <p className="text-xs font-bold text-violet-300 uppercase tracking-wider mb-1">Step 1</p>
+                  <p className="text-lg font-bold text-white">$100</p>
+                  <p className="text-xs text-slate-500 mt-1">Installation</p>
+                </div>
+                <div className="rounded-2xl bg-white/[0.03] border border-white/[0.08] p-4 text-center">
+                  <p className="text-xs font-bold text-fuchsia-300 uppercase tracking-wider mb-1">Step 2</p>
+                  <p className="text-lg font-bold text-white">$149</p>
+                  <p className="text-xs text-slate-500 mt-1">30-day management</p>
+                </div>
+              </div>
+
+              <button
+                onClick={bookInstallation}
+                className="group w-full py-4 rounded-2xl font-semibold text-sm bg-gradient-to-r from-violet-600 via-violet-500 to-fuchsia-500 text-white shadow-lg shadow-violet-500/30 hover:shadow-violet-500/50 hover:scale-[1.02] transition-all flex items-center justify-center gap-2"
+              >
+                <span>Book my installation</span>
+                <IconArrowRight />
+              </button>
+
+              <p className="text-center text-sm mt-6">
+                <Link href="/pricing" className="text-violet-400 hover:text-violet-300 transition-colors">
+                  See full details and FAQ →
+                </Link>
+              </p>
             </div>
           </div>
-
-          <p className="text-center text-sm text-slate-500 mt-8">
-            <Link href="/pricing" className="text-violet-400 hover:text-violet-300 transition-colors">
-              See full pricing and features →
-            </Link>
-          </p>
         </section>
 
         {/* ═══════════ FAQ ═══════════ */}
@@ -447,11 +423,11 @@ export default function Home() {
 
           <div className="space-y-3">
             {[
-              { q: 'Why is this so much cheaper than enterprise churn tools?', a: "Because we built this for solo founders and small teams, not companies with a dedicated retention budget. You get the core of what matters — knowing why people leave, and a genuine shot at keeping some of them — without paying for features built for teams 100x your size." },
-              { q: 'Do I need a developer to install this?', a: "No. It's one script tag and one button attribute. Most people have it live in under 5 minutes." },
-              { q: 'Will this feel manipulative to my customers?', a: 'No fake urgency, no hidden cancel buttons, no dark patterns. Customers always see a clear way to finish cancelling at every step — we only ask once, and we mean it when we say "no hard feelings" if they decline.' },
-              { q: 'What happens to the data?', a: "It's yours. Every reason, every answer, every offer outcome lives in your dashboard, exportable anytime." },
-              { q: 'Can I cancel anytime?', a: 'Yes. Cancel with one click from your dashboard. No emails, no phone calls, no friction.' },
+              { q: 'Why so much cheaper than Churnkey or ProsperStack?', a: "Because I'm building this in public and you're one of my first 5 customers. In exchange for the discount, I'll use your results as a case study (anonymized if you prefer). Churnkey and ProsperStack charge $200-300+ per month. I charge $249 one-time." },
+              { q: 'What if it doesn\'t work?', a: "You pay $100 upfront for the installation. If after 7 days you don't see the value, you don't pay the $149 management fee. Simple." },
+              { q: 'Do I need a developer to install this?', a: "No. I do the entire installation myself within 48 hours. You just give me access (or send me the code snippet to paste)." },
+              { q: 'How do I pay?', a: 'Payoneer payment link. Card or bank transfer. You get an invoice for both steps.' },
+              { q: 'Can I cancel anytime?', a: "Yes. The service is one-time. After 30 days, you keep the widget and the dashboard forever — no recurring fees." },
             ].map((item, i) => (
               <details key={i} className="group rounded-2xl bg-white/[0.02] border border-white/[0.06] hover:border-white/[0.12] transition-colors">
                 <summary className="cursor-pointer list-none p-5 flex items-center justify-between gap-4">
@@ -475,25 +451,25 @@ export default function Home() {
 
             <div className="relative">
               <h2 className="text-4xl md:text-5xl font-bold tracking-[-0.02em] leading-[1.05] mb-6">
-                Ready to stop losing customers?
+                Only 5 spots available.
               </h2>
               <p className="text-slate-400 text-lg mb-8 max-w-2xl mx-auto">
-                Join the founders who are turning cancellations into conversations — and some of those
-                conversations into saved revenue.
+                Once these are gone, the price returns to $499. Book your installation today.
               </p>
 
-              <Link href="/signup">
-                <button className="group relative px-9 py-4 rounded-2xl text-base font-semibold text-white overflow-hidden transition-transform hover:scale-[1.02] active:scale-[0.98] shadow-2xl shadow-violet-500/40">
-                  <div className="absolute inset-0 bg-gradient-to-r from-violet-600 via-violet-500 to-fuchsia-500"></div>
-                  <span className="relative flex items-center gap-2">
-                    Start your free trial
-                    <IconArrowRight />
-                  </span>
-                </button>
-              </Link>
+              <button
+                onClick={bookInstallation}
+                className="group relative px-9 py-4 rounded-2xl text-base font-semibold text-white overflow-hidden transition-transform hover:scale-[1.02] active:scale-[0.98] shadow-2xl shadow-violet-500/40"
+              >
+                <div className="absolute inset-0 bg-gradient-to-r from-violet-600 via-violet-500 to-fuchsia-500"></div>
+                <span className="relative flex items-center gap-2">
+                  Book my installation
+                  <IconArrowRight />
+                </span>
+              </button>
 
               <p className="text-xs text-slate-500 mt-6">
-                14 days free · No credit card required · Cancel anytime
+                $100 upfront · $149 after 7 days · No recurring fees
               </p>
             </div>
           </div>
@@ -504,11 +480,11 @@ export default function Home() {
           <div className="max-w-7xl mx-auto">
             <div className="flex flex-col md:flex-row justify-between items-center gap-6 mb-8">
               <Logo size="sm" />
-              <nav className="flex gap-6 text-sm text-slate-500">
+              <nav className="flex gap-6 text-sm text-slate-500 flex-wrap justify-center">
                 <Link href="/terms" className="hover:text-slate-300 transition-colors">Terms</Link>
                 <Link href="/privacy" className="hover:text-slate-300 transition-colors">Privacy</Link>
                 <Link href="/refund" className="hover:text-slate-300 transition-colors">Refund</Link>
-                <a href="mailto:hello@retainpulse.com" className="hover:text-slate-300 transition-colors">Contact</a>
+                <a href="https://x.com/Retainpulse" target="_blank" rel="noopener noreferrer" className="hover:text-slate-300 transition-colors">X / Twitter</a>
               </nav>
             </div>
             <div className="text-center text-xs text-slate-600">
