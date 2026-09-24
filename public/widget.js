@@ -1,16 +1,20 @@
 /**
- * RetainPulse Widget v4.2
+ * RetainPulse Widget v4.3
  * Single-offer, California-compliant cancellation flow with Pause option
  *
  * Reads window.RetainPulseConfig dynamically at open-time,
  * so it works regardless of when the config is set on the page.
+ *
+ * v4.3 changes:
+ * - Production API base (retainpulse.pro)
+ * - Replaced native alert() with branded toast notifications
+ * - Minor stability improvements
  */
 
 (function () {
   'use strict';
 
-  // ⚠️ TODO: Change to https://retainpulse.pro once domain is live
-  var API_BASE = 'https://churnguard-sandy.vercel.app';
+  var API_BASE = 'https://retainpulse.pro';
 
   // ─────────────────────────────────────────────
   //  Config accessor (dynamic — always fresh)
@@ -44,7 +48,8 @@
   var state = {
     overlay: null,
     escapeHandler: null,
-    submitting: false
+    submitting: false,
+    toastTimer: null
   };
 
   // ─────────────────────────────────────────────
@@ -73,8 +78,62 @@
     style.textContent =
       '@keyframes rpFadeIn{from{opacity:0}to{opacity:1}}' +
       '@keyframes rpSlideUp{from{opacity:0;transform:translateY(20px)}to{opacity:1;transform:translateY(0)}}' +
-      '@keyframes rpSpin{to{transform:rotate(360deg)}}';
+      '@keyframes rpSpin{to{transform:rotate(360deg)}}' +
+      '@keyframes rpToastIn{from{opacity:0;transform:translateY(20px)}to{opacity:1;transform:translateY(0)}}' +
+      '@keyframes rpToastOut{from{opacity:1;transform:translateY(0)}to{opacity:0;transform:translateY(20px)}}';
     document.head.appendChild(style);
+  }
+
+  // ─────────────────────────────────────────────
+  //  Toast notification (replaces alert())
+  // ─────────────────────────────────────────────
+  function showToast(message) {
+    // Remove existing toast if any
+    var existing = document.getElementById('retainpulse-toast');
+    if (existing && existing.parentNode) existing.parentNode.removeChild(existing);
+    if (state.toastTimer) {
+      clearTimeout(state.toastTimer);
+      state.toastTimer = null;
+    }
+
+    var toast = document.createElement('div');
+    toast.id = 'retainpulse-toast';
+    toast.style.cssText = [
+      'position:fixed', 'bottom:24px', 'left:50%', 'transform:translateX(-50%)',
+      'max-width:420px', 'width:calc(100% - 40px)',
+      'background:' + UI.bg, 'border:1px solid ' + UI.border,
+      'border-radius:14px', 'padding:16px 20px',
+      'box-shadow:0 15px 40px rgba(0,0,0,0.15)',
+      'font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,sans-serif',
+      'font-size:14px', 'color:' + UI.text, 'line-height:1.5',
+      'z-index:2147483647', 'display:flex', 'align-items:flex-start', 'gap:12px',
+      'animation:rpToastIn 0.3s ease-out',
+      'box-sizing:border-box'
+    ].join(';');
+
+    var checkIcon = document.createElement('div');
+    checkIcon.style.cssText = [
+      'flex-shrink:0', 'width:24px', 'height:24px', 'border-radius:50%',
+      'background:' + UI.brandGradient,
+      'display:flex', 'align-items:center', 'justify-content:center',
+      'color:#ffffff', 'font-weight:700', 'font-size:13px'
+    ].join(';');
+    checkIcon.textContent = '✓';
+    toast.appendChild(checkIcon);
+
+    var text = document.createElement('div');
+    text.style.cssText = 'flex:1;padding-top:2px;';
+    text.textContent = message;
+    toast.appendChild(text);
+
+    document.body.appendChild(toast);
+
+    state.toastTimer = setTimeout(function () {
+      toast.style.animation = 'rpToastOut 0.3s ease-in forwards';
+      setTimeout(function () {
+        if (toast && toast.parentNode) toast.parentNode.removeChild(toast);
+      }, 300);
+    }, 4000);
   }
 
   // ─────────────────────────────────────────────
@@ -381,7 +440,7 @@
           try { config.onOfferAccepted(); }
           catch (err) { console.error('[RetainPulse] onOfferAccepted failed:', err); }
         } else {
-          alert("We've noted your response - the offer will be applied to your account shortly.");
+          showToast("We've noted your response — the offer will be applied to your account shortly.");
         }
       });
     });
@@ -413,7 +472,7 @@
           try { config.onOfferAccepted(); }
           catch (err) { console.error('[RetainPulse] onOfferAccepted failed:', err); }
         } else {
-          alert("We've noted your request - your subscription will be paused for 2 months.");
+          showToast("We've noted your request — your subscription will be paused for 2 months.");
         }
       });
     });
@@ -566,7 +625,7 @@
 
     if (!config.publicKey) {
       console.error('[RetainPulse] Cannot open: no publicKey set in window.RetainPulseConfig');
-      alert('Configuration error: publicKey is missing. Please refresh and try again.');
+      showToast('Configuration error: publicKey is missing. Please refresh and try again.');
       return;
     }
 
@@ -578,7 +637,7 @@
   window.RetainPulse = {
     show: show,
     hide: closeModal,
-    version: '4.2'
+    version: '4.3'
   };
 
   // ─────────────────────────────────────────────
@@ -599,7 +658,7 @@
   function boot() {
     injectStyles();
     init();
-    console.log('[RetainPulse] Widget v4.2 ready');
+    console.log('[RetainPulse] Widget v4.3 ready');
   }
 
   if (document.readyState === 'loading') {
