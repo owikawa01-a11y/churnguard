@@ -1,5 +1,5 @@
 // ===========================================
-//  ChurnGuard API - Follow-up Route
+//  RetainPulse API - Follow-up Route
 //  Generates AI follow-up question + sends email notification
 // ===========================================
 
@@ -13,7 +13,7 @@ const SUPABASE_SERVICE_KEY = process.env.SUPABASE_SERVICE_ROLE_KEY;
 const GROQ_API_KEY = process.env.GROQ_API_KEY;
 
 if (!SUPABASE_URL || !SUPABASE_SERVICE_KEY) {
-  console.error('[ChurnGuard][follow-up] Missing Supabase env vars');
+  console.error('[RetainPulse][follow-up] Missing Supabase env vars');
 }
 
 const supabase = createClient(SUPABASE_URL, SUPABASE_SERVICE_KEY);
@@ -70,7 +70,7 @@ export async function POST(request) {
   const { success, limit, remaining, reset } = await followUpRatelimit.limit(ip);
 
   if (!success) {
-    console.warn('[ChurnGuard][follow-up] Rate limit hit | IP:', ip);
+    console.warn('[RetainPulse][follow-up] Rate limit hit | IP:', ip);
     return jsonResponse(
       {
         success: false,
@@ -126,7 +126,7 @@ export async function POST(request) {
       .single();
 
     if (widgetError || !widget) {
-      console.warn('[ChurnGuard][follow-up] Widget not found | Key:', cleanPublicKey.slice(0, 8) + '...');
+      console.warn('[RetainPulse][follow-up] Widget not found | Key:', cleanPublicKey.slice(0, 8) + '...');
       return errorResponse('Invalid widget key', 404, 'WIDGET_NOT_FOUND');
     }
 
@@ -140,7 +140,7 @@ export async function POST(request) {
         .single();
       if (account?.email) ownerEmail = account.email;
     } catch (err) {
-      console.error('[ChurnGuard][follow-up] Failed to fetch account email:', err.message);
+      console.error('[RetainPulse][follow-up] Failed to fetch account email:', err.message);
     }
 
     // --- Generate AI Question ---
@@ -185,13 +185,13 @@ export async function POST(request) {
             aiSource = 'groq';
           }
         } else {
-          console.error('[ChurnGuard][follow-up] Groq error | Status:', groqRes.status);
+          console.error('[RetainPulse][follow-up] Groq error | Status:', groqRes.status);
         }
       } catch (err) {
         if (err.name === 'AbortError') {
-          console.warn('[ChurnGuard][follow-up] Groq timeout, using fallback');
+          console.warn('[RetainPulse][follow-up] Groq timeout, using fallback');
         } else {
-          console.error('[ChurnGuard][follow-up] Groq failed:', err.message);
+          console.error('[RetainPulse][follow-up] Groq failed:', err.message);
         }
       }
     }
@@ -209,7 +209,7 @@ export async function POST(request) {
       .single();
 
     if (insertError) {
-      console.error('[ChurnGuard][follow-up] DB insert error:', insertError.message);
+      console.error('[RetainPulse][follow-up] DB insert error:', insertError.message);
       return errorResponse('Could not save event', 500, 'DB_ERROR');
     }
 
@@ -217,7 +217,7 @@ export async function POST(request) {
     let emailSent = false;
     if (ownerEmail) {
       try {
-        console.log('[ChurnGuard][follow-up] Sending email to:', ownerEmail);
+        console.log('[RetainPulse][follow-up] Sending email to:', ownerEmail);
         const emailResult = await sendCancellationAlert({
           toEmail: ownerEmail,
           customerEmail: cleanEmail,
@@ -227,18 +227,18 @@ export async function POST(request) {
           offerShown: null,
         });
         emailSent = emailResult.success;
-        console.log('[ChurnGuard][follow-up] Email result:', emailResult);
+        console.log('[RetainPulse][follow-up] Email result:', emailResult);
       } catch (err) {
-        console.error('[ChurnGuard][follow-up] Email failed:', err.message);
+        console.error('[RetainPulse][follow-up] Email failed:', err.message);
       }
     } else {
-      console.warn('[ChurnGuard][follow-up] No owner email, skipping notification');
+      console.warn('[RetainPulse][follow-up] No owner email, skipping notification');
     }
 
     // --- Success ---
     const duration = Date.now() - startTime;
     console.log(
-      '[ChurnGuard][follow-up] OK | AI:', aiSource,
+      '[RetainPulse][follow-up] OK | AI:', aiSource,
       '| Email:', emailSent ? 'sent' : 'failed/skipped',
       '|', duration + 'ms'
     );
@@ -251,7 +251,7 @@ export async function POST(request) {
       email_sent: emailSent,
     });
   } catch (err) {
-    console.error('[ChurnGuard][follow-up] Unexpected error:', err);
+    console.error('[RetainPulse][follow-up] Unexpected error:', err);
     return errorResponse('Internal server error', 500, 'INTERNAL_ERROR');
   }
 }
