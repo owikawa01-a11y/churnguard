@@ -108,9 +108,9 @@ export default function EmbedPage() {
   }, [router]);
 
   const getEmbedCode = (key) => {
-    return `<!-- ChurnGuard Widget -->
+    return `<!-- RetainPulse Widget -->
 <script>
-  window.ChurnGuardConfig = {
+  window.RetainPulseConfig = {
     publicKey: "${key}",
 
     // OPTIONAL: Average monthly revenue per customer.
@@ -135,9 +135,9 @@ export default function EmbedPage() {
     }
   };
 </script>
-<script src="https://churnguard-sandy.vercel.app/widget.js" async></script>
-<button data-churnguard-trigger>Cancel subscription</button>
-<!-- End ChurnGuard Widget -->`;
+<script src="https://retainpulse.pro/widget.js" async></script>
+<button data-retainpulse-trigger>Cancel subscription</button>
+<!-- End RetainPulse Widget -->`;
   };
 
   const copyToClipboard = async (text, setter) => {
@@ -188,7 +188,7 @@ export default function EmbedPage() {
                 Install Widget
               </h1>
               <p className="text-slate-500 text-sm mt-1">
-                Add ChurnGuard to your product in under 5 minutes
+                Add RetainPulse to your product in under 5 minutes
               </p>
             </div>
           </div>
@@ -346,12 +346,12 @@ export default function EmbedPage() {
                 <div>
                   <h3 className="font-medium text-white mb-1">Add the cancel button</h3>
                   <p className="text-sm text-slate-500 mb-2">
-                    Add the <code className="text-violet-300 bg-black/30 px-1.5 py-0.5 rounded text-xs font-mono">data-churnguard-trigger</code> attribute 
+                    Add the <code className="text-violet-300 bg-black/30 px-1.5 py-0.5 rounded text-xs font-mono">data-retainpulse-trigger</code> attribute 
                     to your existing cancel button.
                   </p>
                   <div className="bg-black/40 rounded-lg p-3 border border-white/[0.06]">
                     <code className="text-xs text-slate-300 font-mono">
-                      &lt;button data-churnguard-trigger&gt;Cancel Subscription&lt;/button&gt;
+                      &lt;button data-retainpulse-trigger&gt;Cancel Subscription&lt;/button&gt;
                     </code>
                   </div>
                 </div>
