@@ -1,5 +1,5 @@
 // ===========================================
-//  ChurnGuard API - Account Status
+//  RetainPulse API - Account Status
 //  Returns subscription status for the current user
 // ===========================================
 
@@ -74,7 +74,7 @@ export async function GET(request) {
       { headers: CORS_HEADERS }
     );
   } catch (err) {
-    console.error('[ChurnGuard][account-status] Error:', err);
+    console.error('[RetainPulse][account-status] Error:', err);
     return Response.json(
       { error: 'Server error' },
       { status: 500, headers: CORS_HEADERS }
