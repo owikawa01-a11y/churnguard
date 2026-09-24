@@ -1,5 +1,5 @@
 // ===========================================
-//  ChurnGuard API - Retention Route
+//  RetainPulse API - Retention Route
 //  Generates ONE retention offer (California ARA compliant)
 //  AI only phrases the offer - never invents terms
 // ===========================================
@@ -13,7 +13,7 @@ const SUPABASE_SERVICE_KEY = process.env.SUPABASE_SERVICE_ROLE_KEY;
 const GROQ_API_KEY = process.env.GROQ_API_KEY;
 
 if (!SUPABASE_URL || !SUPABASE_SERVICE_KEY) {
-  console.error('[ChurnGuard][retention] Missing Supabase env vars');
+  console.error('[RetainPulse][retention] Missing Supabase env vars');
 }
 
 const supabase = createClient(SUPABASE_URL, SUPABASE_SERVICE_KEY);
@@ -105,7 +105,7 @@ export async function POST(request) {
   const { success, limit, remaining, reset } = await retentionRatelimit.limit(ip);
 
   if (!success) {
-    console.warn('[ChurnGuard][retention] Rate limit hit | IP:', ip);
+    console.warn('[RetainPulse][retention] Rate limit hit | IP:', ip);
     return jsonResponse(
       {
         success: false,
@@ -197,13 +197,13 @@ export async function POST(request) {
             aiSource = 'groq';
           }
         } else {
-          console.error('[ChurnGuard][retention] Groq error | Status:', groqRes.status);
+          console.error('[RetainPulse][retention] Groq error | Status:', groqRes.status);
         }
       } catch (err) {
         if (err.name === 'AbortError') {
-          console.warn('[ChurnGuard][retention] Groq timeout, using default copy');
+          console.warn('[RetainPulse][retention] Groq timeout, using default copy');
         } else {
-          console.error('[ChurnGuard][retention] Groq failed:', err.message);
+          console.error('[RetainPulse][retention] Groq failed:', err.message);
         }
       }
     }
@@ -215,12 +215,12 @@ export async function POST(request) {
       .eq('id', event_id);
 
     if (updateError) {
-      console.error('[ChurnGuard][retention] DB update error:', updateError.message);
+      console.error('[RetainPulse][retention] DB update error:', updateError.message);
     }
 
     // --- Success ---
     const duration = Date.now() - startTime;
-    console.log('[ChurnGuard][retention] OK | type:', offer.type, '| AI:', aiSource, '|', duration + 'ms');
+    console.log('[RetainPulse][retention] OK | type:', offer.type, '| AI:', aiSource, '|', duration + 'ms');
 
     return jsonResponse({
       success: true,
@@ -229,7 +229,7 @@ export async function POST(request) {
       offer_terms: offer.terms,
     });
   } catch (err) {
-    console.error('[ChurnGuard][retention] Unexpected error:', err);
+    console.error('[RetainPulse][retention] Unexpected error:', err);
     return errorResponse('Internal server error', 500, 'INTERNAL_ERROR');
   }
 }
