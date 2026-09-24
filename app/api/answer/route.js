@@ -1,5 +1,5 @@
 // ═══════════════════════════════════════════════════════════
-//  ChurnGuard API - Answer Route
+//  RetainPulse API - Answer Route
 //  Saves the visitor's answer to the AI follow-up question
 // ═══════════════════════════════════════════════════════════
 
@@ -11,7 +11,7 @@ const SUPABASE_URL = process.env.NEXT_PUBLIC_SUPABASE_URL;
 const SUPABASE_SERVICE_KEY = process.env.SUPABASE_SERVICE_ROLE_KEY;
 
 if (!SUPABASE_URL || !SUPABASE_SERVICE_KEY) {
-  console.error('[ChurnGuard][answer] Missing Supabase environment variables');
+  console.error('[RetainPulse][answer] Missing Supabase environment variables');
 }
 
 // ─── Supabase Client (Service Role) ───────────────────────
@@ -56,7 +56,7 @@ export async function POST(request) {
   const { success, limit, remaining, reset } = await answerRatelimit.limit(ip);
 
   if (!success) {
-    console.warn(`[ChurnGuard][answer] Rate limit hit | IP: ${ip}`);
+    console.warn(`[RetainPulse][answer] Rate limit hit | IP: ${ip}`);
     return jsonResponse(
       {
         success: false,
@@ -112,7 +112,7 @@ export async function POST(request) {
       .single();
 
     if (updateError) {
-      console.error('[ChurnGuard][answer] DB update error:', updateError.message);
+      console.error('[RetainPulse][answer] DB update error:', updateError.message);
       return errorResponse('Could not save answer', 500, 'DB_ERROR');
     }
 
@@ -123,7 +123,7 @@ export async function POST(request) {
     // ─── 7. Success Response ────────────────────────────
     const duration = Date.now() - startTime;
     console.log(
-      `[ChurnGuard][answer] ✓ Answer saved | Event: ${event_id.slice(0, 8)}... | hasAnswer: ${!!cleanAnswer} | ${duration}ms`
+      `[RetainPulse][answer] ✓ Answer saved | Event: ${event_id.slice(0, 8)}... | hasAnswer: ${!!cleanAnswer} | ${duration}ms`
     );
 
     return jsonResponse({
@@ -132,7 +132,7 @@ export async function POST(request) {
       has_answer: cleanAnswer !== null,
     });
   } catch (err) {
-    console.error('[ChurnGuard][answer] Unexpected error:', err);
+    console.error('[RetainPulse][answer] Unexpected error:', err);
     return errorResponse('Internal server error', 500, 'INTERNAL_ERROR');
   }
 }
