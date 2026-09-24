@@ -1,5 +1,5 @@
 // ===========================================
-//  ChurnGuard API - Decision Route
+//  RetainPulse API - Decision Route
 //  Records the customer's final decision
 // ===========================================
 
@@ -99,7 +99,7 @@ export async function POST(request) {
       .single();
 
     if (updateError) {
-      console.error('[ChurnGuard][decision] DB error:', updateError.message);
+      console.error('[RetainPulse][decision] DB error:', updateError.message);
       return errorResponse('Could not save decision', 500, 'DB_ERROR');
     }
 
@@ -109,7 +109,7 @@ export async function POST(request) {
 
     const duration = Date.now() - startTime;
     console.log(
-      '[ChurnGuard][decision] OK | ' + finalAction + ' | id=' + event_id.slice(0, 8) + ' | ' + duration + 'ms'
+      '[RetainPulse][decision] OK | ' + finalAction + ' | id=' + event_id.slice(0, 8) + ' | ' + duration + 'ms'
     );
 
     return jsonResponse({
@@ -118,7 +118,7 @@ export async function POST(request) {
       final_action: finalAction,
     });
   } catch (err) {
-    console.error('[ChurnGuard][decision] Unexpected error:', err);
+    console.error('[RetainPulse][decision] Unexpected error:', err);
     return errorResponse('Internal server error', 500, 'INTERNAL_ERROR');
   }
 }
