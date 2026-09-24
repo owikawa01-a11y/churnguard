@@ -1,30 +1,33 @@
 /**
- * ChurnGuard Widget v4.1
+ * RetainPulse Widget v4.2
  * Single-offer, California-compliant cancellation flow with Pause option
+ *
+ * Reads window.RetainPulseConfig dynamically at open-time,
+ * so it works regardless of when the config is set on the page.
  */
 
 (function () {
   'use strict';
 
+  // ⚠️ TODO: Change to https://retainpulse.pro once domain is live
   var API_BASE = 'https://churnguard-sandy.vercel.app';
-  var config = window.ChurnGuardConfig || {};
-  var publicKey = config.publicKey;
 
-  if (!publicKey) {
-    console.warn('[ChurnGuard] No publicKey set in window.ChurnGuardConfig');
-    return;
+  // ─────────────────────────────────────────────
+  //  Config accessor (dynamic — always fresh)
+  // ─────────────────────────────────────────────
+  function getConfig() {
+    return window.RetainPulseConfig || {};
   }
 
-  if (typeof config.onCancelConfirmed !== 'function') {
-    console.warn('[ChurnGuard] No onCancelConfirmed callback set.');
-  }
-
+  // ─────────────────────────────────────────────
+  //  Constants
+  // ─────────────────────────────────────────────
   var REASONS = [
-    { id: 'price', label: 'Too expensive' },
-    { id: 'feature', label: 'Missing a feature I need' },
+    { id: 'price',      label: 'Too expensive' },
+    { id: 'feature',    label: 'Missing a feature I need' },
     { id: 'competitor', label: 'Switching to another tool' },
-    { id: 'usage', label: "Don't use it enough" },
-    { id: 'other', label: 'Other' }
+    { id: 'usage',      label: "Don't use it enough" },
+    { id: 'other',      label: 'Other' }
   ];
 
   var UI = {
@@ -38,9 +41,15 @@
     bgSubtle: '#fafafa'
   };
 
-  var currentOverlay = null;
-  var currentEscapeHandler = null;
+  var state = {
+    overlay: null,
+    escapeHandler: null,
+    submitting: false
+  };
 
+  // ─────────────────────────────────────────────
+  //  DOM helpers
+  // ─────────────────────────────────────────────
   function el(tag, styles, attrs) {
     var e = document.createElement(tag);
     if (styles) e.style.cssText = styles;
@@ -58,21 +67,24 @@
   }
 
   function injectStyles() {
-    if (document.getElementById('churnguard-styles')) return;
+    if (document.getElementById('retainpulse-styles')) return;
     var style = document.createElement('style');
-    style.id = 'churnguard-styles';
+    style.id = 'retainpulse-styles';
     style.textContent =
-      '@keyframes cgFadeIn{from{opacity:0}to{opacity:1}}' +
-      '@keyframes cgSlideUp{from{opacity:0;transform:translateY(20px)}to{opacity:1;transform:translateY(0)}}' +
-      '@keyframes cgSpin{to{transform:rotate(360deg)}}';
+      '@keyframes rpFadeIn{from{opacity:0}to{opacity:1}}' +
+      '@keyframes rpSlideUp{from{opacity:0;transform:translateY(20px)}to{opacity:1;transform:translateY(0)}}' +
+      '@keyframes rpSpin{to{transform:rotate(360deg)}}';
     document.head.appendChild(style);
   }
 
+  // ─────────────────────────────────────────────
+  //  Modal lifecycle
+  // ─────────────────────────────────────────────
   function createModal() {
     removeExistingModal();
 
     var overlay = document.createElement('div');
-    overlay.id = 'churnguard-overlay';
+    overlay.id = 'retainpulse-overlay';
     overlay.setAttribute('role', 'dialog');
     overlay.setAttribute('aria-modal', 'true');
     overlay.style.cssText = [
@@ -81,7 +93,7 @@
       'z-index:2147483647', 'display:flex', 'align-items:center',
       'justify-content:center', 'padding:20px',
       'font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,sans-serif',
-      'animation:cgFadeIn 0.2s ease-out'
+      'animation:rpFadeIn 0.2s ease-out'
     ].join(';');
 
     var box = document.createElement('div');
@@ -89,37 +101,38 @@
       'background:' + UI.bg, 'border-radius:18px', 'padding:32px',
       'max-width:420px', 'width:100%',
       'box-shadow:0 25px 70px rgba(0,0,0,0.35)', 'box-sizing:border-box',
-      'animation:cgSlideUp 0.3s ease-out', 'max-height:90vh', 'overflow-y:auto'
+      'animation:rpSlideUp 0.3s ease-out', 'max-height:90vh', 'overflow-y:auto'
     ].join(';');
 
     overlay.appendChild(box);
     document.body.appendChild(overlay);
-    currentOverlay = overlay;
+
+    state.overlay = overlay;
 
     overlay.addEventListener('click', function (e) {
       if (e.target === overlay) closeModal();
     });
 
-    currentEscapeHandler = function (e) {
+    state.escapeHandler = function (e) {
       if (e.key === 'Escape') closeModal();
     };
-    document.addEventListener('keydown', currentEscapeHandler);
+    document.addEventListener('keydown', state.escapeHandler);
 
     return box;
   }
 
   function removeExistingModal() {
-    var existing = document.getElementById('churnguard-overlay');
+    var existing = document.getElementById('retainpulse-overlay');
     if (existing && existing.parentNode) existing.parentNode.removeChild(existing);
   }
 
   function closeModal() {
-    if (!currentOverlay) return;
-    var overlay = currentOverlay;
+    if (!state.overlay) return;
+    var overlay = state.overlay;
 
-    if (currentEscapeHandler) {
-      document.removeEventListener('keydown', currentEscapeHandler);
-      currentEscapeHandler = null;
+    if (state.escapeHandler) {
+      document.removeEventListener('keydown', state.escapeHandler);
+      state.escapeHandler = null;
     }
 
     overlay.style.transition = 'opacity 0.15s';
@@ -127,20 +140,29 @@
     setTimeout(function () {
       if (overlay && overlay.parentNode) overlay.parentNode.removeChild(overlay);
     }, 150);
-    currentOverlay = null;
+
+    state.overlay = null;
+    state.submitting = false;
   }
 
+  // ─────────────────────────────────────────────
+  //  Cancellation completion
+  // ─────────────────────────────────────────────
   function completeCancellation() {
+    var config = getConfig();
     closeModal();
+
     if (typeof config.onCancelConfirmed === 'function') {
-      try { config.onCancelConfirmed(); } catch (err) {
-        console.error('[ChurnGuard] onCancelConfirmed failed:', err);
-      }
+      try { config.onCancelConfirmed(); }
+      catch (err) { console.error('[RetainPulse] onCancelConfirmed failed:', err); }
     } else if (config.cancelUrl) {
       window.location.href = config.cancelUrl;
     }
   }
 
+  // ─────────────────────────────────────────────
+  //  Step 1: Reason
+  // ─────────────────────────────────────────────
   function renderReasonStep(box) {
     clearElement(box);
 
@@ -175,7 +197,11 @@
         btn.style.background = UI.bgSubtle;
         btn.style.transform = 'translateY(0)';
       });
-      btn.addEventListener('click', function () { submitReason(reason.label, box); });
+      btn.addEventListener('click', function () {
+        if (state.submitting) return;
+        state.submitting = true;
+        submitReason(reason.label, box);
+      });
       box.appendChild(btn);
     });
 
@@ -189,31 +215,42 @@
     box.appendChild(skip);
   }
 
+  // ─────────────────────────────────────────────
+  //  Loading state
+  // ─────────────────────────────────────────────
   function renderLoadingStep(box, message) {
     clearElement(box);
     var wrapper = el('div', 'text-align:center;padding:20px 0;', null);
+
     wrapper.appendChild(el(
       'div',
       'display:inline-block;width:32px;height:32px;border:3px solid ' + UI.border +
-      ';border-top-color:' + UI.brand + ';border-radius:50%;animation:cgSpin 0.7s linear infinite;',
+      ';border-top-color:' + UI.brand + ';border-radius:50%;animation:rpSpin 0.7s linear infinite;',
       null
     ));
+
     wrapper.appendChild(el(
       'p',
       'margin:16px 0 0;font-size:14px;color:' + UI.textMuted + ';',
       { text: message || 'Thinking...' }
     ));
+
     box.appendChild(wrapper);
   }
 
+  // ─────────────────────────────────────────────
+  //  Step 2: Follow-up question
+  // ─────────────────────────────────────────────
   function renderFollowUpStep(box, eventId, question, reason) {
     clearElement(box);
+    state.submitting = false;
 
     box.appendChild(el(
       'h3',
       'margin:0 0 8px;font-size:18px;font-weight:700;color:' + UI.text + ';line-height:1.3;',
       { text: 'One more thing' }
     ));
+
     box.appendChild(el(
       'p',
       'margin:0 0 18px;font-size:15px;color:' + UI.text + ';line-height:1.5;font-weight:500;',
@@ -228,7 +265,7 @@
     ].join(';'), { rows: '3', placeholder: 'Your thoughts (optional)...' });
 
     textarea.addEventListener('focus', function () { textarea.style.borderColor = UI.brand; });
-    textarea.addEventListener('blur', function () { textarea.style.borderColor = UI.border; });
+    textarea.addEventListener('blur',  function () { textarea.style.borderColor = UI.border; });
     box.appendChild(textarea);
 
     var submitBtn = el('button', [
@@ -240,6 +277,9 @@
     ].join(';'), { type: 'button', text: 'Continue' });
 
     submitBtn.addEventListener('click', function () {
+      if (state.submitting) return;
+      state.submitting = true;
+
       var answer = textarea.value.trim();
       submitBtn.disabled = true;
       submitBtn.textContent = 'Saving...';
@@ -250,7 +290,7 @@
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ event_id: eventId, answer: answer })
       })
-        .catch(function (err) { console.error('[ChurnGuard] Failed to save answer:', err); })
+        .catch(function (err) { console.error('[RetainPulse] Failed to save answer:', err); })
         .then(function () { fetchAndShowOffer(box, eventId, reason, answer); });
     });
     box.appendChild(submitBtn);
@@ -265,6 +305,9 @@
     box.appendChild(skip);
   }
 
+  // ─────────────────────────────────────────────
+  //  Step 3: Fetch + show retention offer
+  // ─────────────────────────────────────────────
   function fetchAndShowOffer(box, eventId, reason, answer) {
     renderLoadingStep(box, 'Preparing something...');
 
@@ -289,26 +332,32 @@
         renderOfferStep(box, eventId, result.data.offer);
       })
       .catch(function (err) {
-        console.error('[ChurnGuard] Failed to fetch offer:', err);
+        console.error('[RetainPulse] Failed to fetch offer:', err);
         recordDecision(eventId, false);
         completeCancellation();
       });
   }
 
+  // ─────────────────────────────────────────────
+  //  Step 4: Offer display
+  // ─────────────────────────────────────────────
   function renderOfferStep(box, eventId, offerText) {
     clearElement(box);
+    state.submitting = false;
 
     box.appendChild(el(
       'h3',
       'margin:0 0 10px;font-size:18px;font-weight:700;color:' + UI.text + ';line-height:1.3;',
       { text: 'Wait, before you cancel' }
     ));
+
     box.appendChild(el(
       'p',
       'margin:0 0 20px;font-size:15px;color:' + UI.text + ';line-height:1.55;',
       { text: offerText }
     ));
 
+    // Accept
     var acceptBtn = el('button', [
       'width:100%', 'padding:14px', 'margin-bottom:10px',
       'background:' + UI.brandGradient, 'color:#ffffff', 'border:none',
@@ -318,16 +367,19 @@
     ].join(';'), { type: 'button', text: 'Yes, keep my account' });
 
     acceptBtn.addEventListener('click', function () {
+      if (state.submitting) return;
+      state.submitting = true;
+
       acceptBtn.disabled = true;
       acceptBtn.textContent = 'Saving...';
       acceptBtn.style.opacity = '0.7';
 
       recordDecision(eventId, true).then(function () {
+        var config = getConfig();
         closeModal();
         if (typeof config.onOfferAccepted === 'function') {
-          try { config.onOfferAccepted(); } catch (err) {
-            console.error('[ChurnGuard] onOfferAccepted failed:', err);
-          }
+          try { config.onOfferAccepted(); }
+          catch (err) { console.error('[RetainPulse] onOfferAccepted failed:', err); }
         } else {
           alert("We've noted your response - the offer will be applied to your account shortly.");
         }
@@ -335,6 +387,7 @@
     });
     box.appendChild(acceptBtn);
 
+    // Pause
     var pauseBtn = el('button', [
       'width:100%', 'padding:12px', 'margin-bottom:10px',
       'background:transparent', 'color:' + UI.text,
@@ -346,16 +399,19 @@
     pauseBtn.addEventListener('mouseenter', function () { pauseBtn.style.background = '#f9fafb'; });
     pauseBtn.addEventListener('mouseleave', function () { pauseBtn.style.background = 'transparent'; });
     pauseBtn.addEventListener('click', function () {
+      if (state.submitting) return;
+      state.submitting = true;
+
       pauseBtn.disabled = true;
       pauseBtn.textContent = 'Pausing...';
       pauseBtn.style.opacity = '0.6';
 
       recordDecision(eventId, true, 'paused').then(function () {
+        var config = getConfig();
         closeModal();
         if (typeof config.onOfferAccepted === 'function') {
-          try { config.onOfferAccepted(); } catch (err) {
-            console.error('[ChurnGuard] onOfferAccepted failed:', err);
-          }
+          try { config.onOfferAccepted(); }
+          catch (err) { console.error('[RetainPulse] onOfferAccepted failed:', err); }
         } else {
           alert("We've noted your request - your subscription will be paused for 2 months.");
         }
@@ -363,6 +419,7 @@
     });
     box.appendChild(pauseBtn);
 
+    // Decline
     var declineBtn = el('button', [
       'width:100%', 'padding:14px', 'background:transparent',
       'color:' + UI.textSubtle, 'border:none',
@@ -372,6 +429,9 @@
     ].join(';'), { type: 'button', text: 'No thanks, cancel my subscription' });
 
     declineBtn.addEventListener('click', function () {
+      if (state.submitting) return;
+      state.submitting = true;
+
       declineBtn.disabled = true;
       declineBtn.textContent = 'Cancelling...';
       declineBtn.style.opacity = '0.6';
@@ -383,14 +443,18 @@
     box.appendChild(declineBtn);
   }
 
+  // ─────────────────────────────────────────────
+  //  API: submit reason → get AI question
+  // ─────────────────────────────────────────────
   function submitReason(reason, box) {
+    var config = getConfig();
     renderLoadingStep(box, 'Thinking...');
 
     fetch(API_BASE + '/api/follow-up', {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({
-        public_key: publicKey,
+        public_key: config.publicKey,
         reason: reason,
         customer_email: config.customerEmail || null
       })
@@ -401,6 +465,8 @@
         });
       })
       .then(function (result) {
+        state.submitting = false;
+
         if (result.status === 429) {
           renderErrorStep(box, 'Too many requests. Please wait a few seconds and try again.', true, function () {
             submitReason(reason, box);
@@ -426,15 +492,20 @@
         });
       })
       .catch(function (err) {
-        console.error('[ChurnGuard] Network error:', err);
+        state.submitting = false;
+        console.error('[RetainPulse] Network error:', err);
         renderErrorStep(box, 'Could not connect. Please check your internet.', true, function () {
           submitReason(reason, box);
         });
       });
   }
 
+  // ─────────────────────────────────────────────
+  //  Error step
+  // ─────────────────────────────────────────────
   function renderErrorStep(box, message, canRetry, onRetry) {
     clearElement(box);
+    state.submitting = false;
 
     box.appendChild(el('div', 'text-align:center;font-size:40px;margin-bottom:12px;line-height:1;', { text: '!' }));
     box.appendChild(el('h3', 'margin:0 0 8px;font-size:18px;font-weight:700;color:' + UI.text + ';text-align:center;', { text: 'Something went wrong' }));
@@ -460,14 +531,17 @@
     box.appendChild(cancelBtn);
   }
 
+  // ─────────────────────────────────────────────
+  //  API: record decision
+  // ─────────────────────────────────────────────
   function recordDecision(eventId, accepted, action) {
+    var config = getConfig();
     var payload = { event_id: eventId, accepted: accepted };
     if (action) payload.action = action;
     if (typeof config.customerMrr === 'number' && config.customerMrr >= 0) {
       payload.customer_mrr = config.customerMrr;
     }
 
-    // Return the promise so callers can wait for it
     return fetch(API_BASE + '/api/decision', {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
@@ -475,26 +549,46 @@
     })
       .then(function (res) { return res.json(); })
       .then(function (data) {
-        console.log('[ChurnGuard] Decision recorded:', data);
+        console.log('[RetainPulse] Decision recorded:', data);
         return data;
       })
       .catch(function (err) {
-        console.error('[ChurnGuard] Failed to record decision:', err);
-        // Don't block cancellation if API fails
+        console.error('[RetainPulse] Failed to record decision:', err);
         return null;
       });
   }
 
+  // ─────────────────────────────────────────────
+  //  Public API
+  // ─────────────────────────────────────────────
   function show() {
+    var config = getConfig();
+
+    if (!config.publicKey) {
+      console.error('[RetainPulse] Cannot open: no publicKey set in window.RetainPulseConfig');
+      alert('Configuration error: publicKey is missing. Please refresh and try again.');
+      return;
+    }
+
+    state.submitting = false;
     var box = createModal();
     renderReasonStep(box);
   }
 
-  window.ChurnGuard = { show: show, hide: closeModal };
+  window.RetainPulse = {
+    show: show,
+    hide: closeModal,
+    version: '4.2'
+  };
 
+  // ─────────────────────────────────────────────
+  //  Auto-bind triggers + boot
+  // ─────────────────────────────────────────────
   function init() {
-    var triggers = document.querySelectorAll('[data-churnguard-trigger]');
+    var triggers = document.querySelectorAll('[data-retainpulse-trigger]');
     triggers.forEach(function (trigger) {
+      if (trigger.dataset.retainpulseBound === 'true') return;
+      trigger.dataset.retainpulseBound = 'true';
       trigger.addEventListener('click', function (e) {
         e.preventDefault();
         show();
@@ -505,7 +599,7 @@
   function boot() {
     injectStyles();
     init();
-    console.log('[ChurnGuard] Widget v4.1 ready');
+    console.log('[RetainPulse] Widget v4.2 ready');
   }
 
   if (document.readyState === 'loading') {
