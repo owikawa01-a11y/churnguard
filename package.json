@@ -1,7 +1,21 @@
 {
-  "name": "churnguard",
+  "name": "retainpulse",
   "version": "0.1.0",
   "private": true,
+  "description": "Done-for-you cancellation flow for indie SaaS founders. Installed in 48 hours.",
+  "author": "RetainPulse",
+  "homepage": "https://retainpulse.pro",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/owikawa01-a11y/churnguard.git"
+  },
+  "keywords": [
+    "saas",
+    "churn",
+    "retention",
+    "cancellation",
+    "customer-feedback"
+  ],
   "scripts": {
     "dev": "next dev",
     "build": "next build",
