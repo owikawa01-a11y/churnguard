@@ -81,6 +81,24 @@ const IconLock = () => (
 );
 
 // ===========================================
+//  Brand Logo (Pulse icon)
+// ===========================================
+const LogoIcon = () => (
+  <div className="relative w-14 h-14 rounded-2xl bg-gradient-to-br from-violet-500 via-violet-600 to-fuchsia-500 flex items-center justify-center shadow-xl">
+    <div className="absolute inset-0 rounded-2xl bg-gradient-to-tr from-transparent via-white/25 to-transparent"></div>
+    <svg className="w-7 h-7 text-white relative" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
+      <path d="M3 12h3l2-7 4 14 2-7h7" />
+    </svg>
+  </div>
+);
+
+const BrandName = () => (
+  <>
+    Retain<span className="bg-gradient-to-r from-violet-400 to-fuchsia-400 bg-clip-text text-transparent">Pulse</span>
+  </>
+);
+
+// ===========================================
 //  Main Component
 // ===========================================
 export default function Dashboard() {
@@ -170,20 +188,20 @@ export default function Dashboard() {
       alert('Public key not found.');
       return;
     }
-    window.ChurnGuardConfig = {
+    window.RetainPulseConfig = {
       publicKey: publicKey,
       customerEmail: 'demo@customer.com',
       customerMrr: 49,
       cancelUrl: '/dashboard',
     };
-    if (window.ChurnGuard) {
-      window.ChurnGuard.show();
+    if (window.RetainPulse) {
+      window.RetainPulse.show();
       return;
     }
     const script = document.createElement('script');
     script.src = '/widget.js';
     script.onload = () => {
-      if (window.ChurnGuard) window.ChurnGuard.show();
+      if (window.RetainPulse) window.RetainPulse.show();
     };
     script.onerror = () => alert('Failed to load widget.js.');
     document.body.appendChild(script);
@@ -219,7 +237,7 @@ export default function Dashboard() {
     const url = URL.createObjectURL(blob);
     const link = document.createElement('a');
     link.href = url;
-    link.download = `churnguard-export-${new Date().toISOString().split('T')[0]}.csv`;
+    link.download = `retainpulse-export-${new Date().toISOString().split('T')[0]}.csv`;
     document.body.appendChild(link);
     link.click();
     document.body.removeChild(link);
@@ -328,10 +346,10 @@ export default function Dashboard() {
             </div>
 
             <h1 className="text-4xl md:text-5xl font-bold tracking-tight mb-4">
-              Trial expired
+              Access paused
             </h1>
             <p className="text-slate-400 text-lg mb-8 leading-relaxed">
-              Your 14-day trial has ended. Upgrade to a paid plan to continue accessing your dashboard.
+              Your account needs attention to continue accessing the dashboard.
               Your widget is still collecting data — you're not losing anything.
             </p>
 
@@ -340,7 +358,7 @@ export default function Dashboard() {
                 <div className="absolute inset-0 bg-gradient-to-r from-violet-600 via-violet-500 to-fuchsia-500"></div>
                 <div className="absolute inset-0 rounded-2xl shadow-xl shadow-violet-500/30"></div>
                 <span className="relative flex items-center gap-2">
-                  Upgrade Now
+                  Get Started
                   <IconArrowRight />
                 </span>
               </button>
@@ -389,10 +407,10 @@ export default function Dashboard() {
               </span>
               <div>
                 <p className="text-sm font-semibold text-amber-100">
-                  Trial ends in {access.daysLeft} {access.daysLeft === 1 ? 'day' : 'days'}
+                  {access.daysLeft} {access.daysLeft === 1 ? 'day' : 'days'} remaining
                 </p>
                 <p className="text-xs text-amber-200/70 mt-0.5">
-                  Upgrade now to keep access to your dashboard.
+                  Upgrade to keep full access to your dashboard.
                 </p>
               </div>
             </div>
@@ -410,14 +428,12 @@ export default function Dashboard() {
             <div className="flex items-center gap-4">
               <div className="relative">
                 <div className="absolute inset-0 bg-gradient-to-br from-violet-500 to-fuchsia-500 rounded-2xl blur-lg opacity-40"></div>
-                <div className="relative w-14 h-14 rounded-2xl bg-gradient-to-br from-violet-500 via-violet-600 to-fuchsia-500 flex items-center justify-center shadow-xl">
-                  <span className="text-white text-2xl font-black tracking-tight">C</span>
-                </div>
+                <LogoIcon />
               </div>
               <div>
                 <div className="flex items-center gap-2 flex-wrap">
-                  <h1 className="text-3xl md:text-4xl font-bold tracking-tight bg-gradient-to-r from-white via-white to-slate-400 bg-clip-text text-transparent">
-                    ChurnGuard
+                  <h1 className="text-3xl md:text-4xl font-bold tracking-tight">
+                    <BrandName />
                   </h1>
                   {isTrial && (
                     <span className="px-2.5 py-1 rounded-full bg-violet-500/15 border border-violet-500/30 text-violet-300 text-[10px] font-bold uppercase tracking-wider">
