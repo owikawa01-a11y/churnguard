@@ -1,4 +1,3 @@
-"use client";
 import Link from 'next/link';
 
 // ===========================================
@@ -71,14 +70,6 @@ const IconSpark = () => (
 //  Main Page
 // ===========================================
 export default function Home() {
-  const bookInstallation = () => {
-    const subject = encodeURIComponent('RetainPulse — Book my installation');
-    const body = encodeURIComponent(
-      `Hi,\n\nI'm interested in the RetainPulse Founding Member offer.\n\nMy SaaS:\nMy MRR range:\nMy cancellation flow today:\n\nThanks!`
-    );
-    window.location.href = `mailto:RetainPulse+akamss001@gmail.com?subject=${subject}&body=${body}`;
-  };
-
   return (
     <div className="relative min-h-screen bg-[#05050c] text-white font-sans antialiased overflow-x-hidden">
 
@@ -125,7 +116,7 @@ export default function Home() {
                   Live demo
                 </button>
               </Link>
-              <Link href="/pricing">
+              <Link href="/book">
                 <button className="group relative px-5 py-2.5 rounded-xl text-sm font-semibold text-white overflow-hidden">
                   <div className="absolute inset-0 bg-gradient-to-r from-violet-600 to-fuchsia-500"></div>
                   <div className="absolute inset-0 bg-gradient-to-r from-violet-500 to-fuchsia-400 opacity-0 group-hover:opacity-100 transition-opacity"></div>
@@ -162,17 +153,16 @@ export default function Home() {
           </p>
 
           <div className="flex flex-col sm:flex-row items-center justify-center gap-3 mb-8">
-            <button
-              onClick={bookInstallation}
-              className="group relative px-7 py-4 rounded-2xl text-base font-semibold text-white overflow-hidden transition-transform hover:scale-[1.02] active:scale-[0.98] shadow-2xl shadow-violet-500/30"
-            >
-              <div className="absolute inset-0 bg-gradient-to-r from-violet-600 via-violet-500 to-fuchsia-500"></div>
-              <div className="absolute inset-0 opacity-0 group-hover:opacity-100 bg-gradient-to-r from-fuchsia-500 via-violet-500 to-violet-600 transition-opacity duration-300"></div>
-              <span className="relative flex items-center gap-2">
-                Book my installation — $249
-                <IconArrowRight />
-              </span>
-            </button>
+            <Link href="/book">
+              <button className="group relative px-7 py-4 rounded-2xl text-base font-semibold text-white overflow-hidden transition-transform hover:scale-[1.02] active:scale-[0.98] shadow-2xl shadow-violet-500/30">
+                <div className="absolute inset-0 bg-gradient-to-r from-violet-600 via-violet-500 to-fuchsia-500"></div>
+                <div className="absolute inset-0 opacity-0 group-hover:opacity-100 bg-gradient-to-r from-fuchsia-500 via-violet-500 to-violet-600 transition-opacity duration-300"></div>
+                <span className="relative flex items-center gap-2">
+                  Book my installation — $249
+                  <IconArrowRight />
+                </span>
+              </button>
+            </Link>
             <Link href="/demo">
               <button className="px-7 py-4 rounded-2xl text-base font-medium text-slate-200 bg-white/[0.03] border border-white/[0.08] hover:bg-white/[0.06] hover:border-white/[0.16] transition-all backdrop-blur-sm">
                 See the live demo
@@ -397,13 +387,12 @@ export default function Home() {
                 </div>
               </div>
 
-              <button
-                onClick={bookInstallation}
-                className="group w-full py-4 rounded-2xl font-semibold text-sm bg-gradient-to-r from-violet-600 via-violet-500 to-fuchsia-500 text-white shadow-lg shadow-violet-500/30 hover:shadow-violet-500/50 hover:scale-[1.02] transition-all flex items-center justify-center gap-2"
-              >
-                <span>Book my installation</span>
-                <IconArrowRight />
-              </button>
+              <Link href="/book">
+                <button className="group w-full py-4 rounded-2xl font-semibold text-sm bg-gradient-to-r from-violet-600 via-violet-500 to-fuchsia-500 text-white shadow-lg shadow-violet-500/30 hover:shadow-violet-500/50 hover:scale-[1.02] transition-all flex items-center justify-center gap-2">
+                  <span>Book my installation</span>
+                  <IconArrowRight />
+                </button>
+              </Link>
 
               <p className="text-center text-sm mt-6">
                 <Link href="/pricing" className="text-violet-400 hover:text-violet-300 transition-colors">
@@ -457,16 +446,15 @@ export default function Home() {
                 Once these are gone, the price returns to $499. Book your installation today.
               </p>
 
-              <button
-                onClick={bookInstallation}
-                className="group relative px-9 py-4 rounded-2xl text-base font-semibold text-white overflow-hidden transition-transform hover:scale-[1.02] active:scale-[0.98] shadow-2xl shadow-violet-500/40"
-              >
-                <div className="absolute inset-0 bg-gradient-to-r from-violet-600 via-violet-500 to-fuchsia-500"></div>
-                <span className="relative flex items-center gap-2">
-                  Book my installation
-                  <IconArrowRight />
-                </span>
-              </button>
+              <Link href="/book">
+                <button className="group relative px-9 py-4 rounded-2xl text-base font-semibold text-white overflow-hidden transition-transform hover:scale-[1.02] active:scale-[0.98] shadow-2xl shadow-violet-500/40">
+                  <div className="absolute inset-0 bg-gradient-to-r from-violet-600 via-violet-500 to-fuchsia-500"></div>
+                  <span className="relative flex items-center gap-2">
+                    Book my installation
+                    <IconArrowRight />
+                  </span>
+                </button>
+              </Link>
 
               <p className="text-xs text-slate-500 mt-6">
                 $100 upfront · $149 after 7 days · No recurring fees
@@ -484,6 +472,7 @@ export default function Home() {
                 <Link href="/terms" className="hover:text-slate-300 transition-colors">Terms</Link>
                 <Link href="/privacy" className="hover:text-slate-300 transition-colors">Privacy</Link>
                 <Link href="/refund" className="hover:text-slate-300 transition-colors">Refund</Link>
+                <a href="mailto:hello@retainpulse.pro" className="hover:text-slate-300 transition-colors">Contact</a>
                 <a href="https://x.com/Retainpulse" target="_blank" rel="noopener noreferrer" className="hover:text-slate-300 transition-colors">X / Twitter</a>
               </nav>
             </div>
