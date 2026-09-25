@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useEffect } from 'react';
+import { useState } from 'react';
 import Link from 'next/link';
 
 // ===========================================
@@ -21,13 +21,27 @@ const Logo = () => (
 );
 
 // ===========================================
+//  Icons
+// ===========================================
+const IconArrowRight = () => (
+  <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24" strokeWidth={2.2}>
+    <path strokeLinecap="round" strokeLinejoin="round" d="M14 5l7 7m0 0l-7 7m7-7H3" />
+  </svg>
+);
+
+const IconCheck = () => (
+  <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24" strokeWidth={2.5}>
+    <path strokeLinecap="round" strokeLinejoin="round" d="M5 13l4 4L19 7" />
+  </svg>
+);
+
+// ===========================================
 //  Main Component
 // ===========================================
 export default function DemoPage() {
-  const [widgetReady, setWidgetReady] = useState(false);
+  const [showWidget, setShowWidget] = useState(false);
 
-  // Set config + preload widget on mount
-  useEffect(() => {
+  const loadWidget = () => {
     window.RetainPulseConfig = {
       publicKey: '3a11005ef9ac7874bd34c67a',
       customerEmail: 'demo@customer.com',
@@ -36,27 +50,16 @@ export default function DemoPage() {
     };
 
     if (window.RetainPulse) {
-      setWidgetReady(true);
+      window.RetainPulse.show();
       return;
     }
 
     const script = document.createElement('script');
     script.src = '/widget.js';
     script.onload = () => {
-      if (window.RetainPulse) setWidgetReady(true);
-    };
-    script.onerror = () => {
-      console.error('[Demo] Failed to load widget.js');
+      if (window.RetainPulse) window.RetainPulse.show();
     };
     document.body.appendChild(script);
-  }, []);
-
-  const openWidget = () => {
-    if (window.RetainPulse) {
-      window.RetainPulse.show();
-    } else {
-      console.error('[Demo] Widget not loaded yet');
-    }
   };
 
   return (
@@ -104,14 +107,13 @@ export default function DemoPage() {
           </p>
 
           <button
-            onClick={openWidget}
-            disabled={!widgetReady}
-            className="group relative px-10 py-5 rounded-2xl text-lg font-bold text-white overflow-hidden transition-transform hover:scale-[1.03] active:scale-95 shadow-2xl shadow-violet-500/40 disabled:opacity-70 disabled:cursor-wait"
+            onClick={loadWidget}
+            className="group relative px-10 py-5 rounded-2xl text-lg font-bold text-white overflow-hidden transition-transform hover:scale-[1.03] active:scale-95 shadow-2xl shadow-violet-500/40"
           >
             <div className="absolute inset-0 bg-gradient-to-r from-violet-600 via-violet-500 to-fuchsia-500"></div>
             <div className="absolute inset-0 opacity-0 group-hover:opacity-100 bg-gradient-to-r from-fuchsia-500 via-violet-500 to-violet-600 transition-opacity duration-300"></div>
             <span className="relative flex items-center gap-3">
-              {widgetReady ? '🧪 Try the live demo' : '⏳ Loading demo...'}
+              🧪 Try the live demo
             </span>
           </button>
 
@@ -146,6 +148,37 @@ export default function DemoPage() {
           </p>
         </section>
 
+        {/* ═══════ What You Saw ═══════ */}
+        <section className="max-w-2xl mx-auto px-6 pb-16">
+          <div className="rounded-2xl bg-white/[0.02] border border-white/[0.06] p-6 md:p-8">
+            <h3 className="text-base font-semibold text-white mb-5">
+              What you just saw
+            </h3>
+            <ul className="space-y-3 text-sm text-slate-300">
+              <li className="flex gap-3">
+                <span className="mt-0.5 flex-shrink-0 text-violet-400"><IconCheck /></span>
+                <span>5 cancellation reasons your customers can pick from</span>
+              </li>
+              <li className="flex gap-3">
+                <span className="mt-0.5 flex-shrink-0 text-violet-400"><IconCheck /></span>
+                <span>An AI follow-up question that digs deeper</span>
+              </li>
+              <li className="flex gap-3">
+                <span className="mt-0.5 flex-shrink-0 text-violet-400"><IconCheck /></span>
+                <span>One reason-matched retention offer</span>
+              </li>
+              <li className="flex gap-3">
+                <span className="mt-0.5 flex-shrink-0 text-violet-400"><IconCheck /></span>
+                <span>A clear Keep / Pause / Cancel decision</span>
+              </li>
+              <li className="flex gap-3">
+                <span className="mt-0.5 flex-shrink-0 text-violet-400"><IconCheck /></span>
+                <span>Everything logged to your dashboard in real time</span>
+              </li>
+            </ul>
+          </div>
+        </section>
+
         {/* ═══════ CTA Section ═══════ */}
         <section className="max-w-3xl mx-auto px-6 pb-24">
           <div className="relative p-8 md:p-12 rounded-3xl bg-gradient-to-br from-violet-500/[0.10] via-fuchsia-500/[0.04] to-transparent border border-violet-500/20 overflow-hidden">
@@ -161,17 +194,21 @@ export default function DemoPage() {
               </p>
 
               <div className="flex flex-col sm:flex-row items-center justify-center gap-3">
-                <a
-                  href="mailto:Retainpulse+akamss001@gmail.com?subject=Interested%20in%20RetainPulse%20installation&body=Hi%2C%0A%0AI%20saw%20the%20RetainPulse%20demo%20and%20I'm%20interested%20in%20learning%20more.%0A%0AMy%20SaaS%3A%20%0AMy%20MRR%20range%3A%20%0A%0AThanks!"
-                  className="group relative px-7 py-4 rounded-2xl text-base font-semibold text-white overflow-hidden transition-transform hover:scale-[1.02] active:scale-95 shadow-2xl shadow-violet-500/30"
+                <Link
+                  href="/book"
+                  className="group relative px-7 py-4 rounded-2xl text-base font-semibold text-white overflow-hidden transition-transform hover:scale-[1.02] active:scale-95 shadow-2xl shadow-violet-500/30 inline-flex items-center gap-2"
                 >
                   <div className="absolute inset-0 bg-gradient-to-r from-violet-600 via-violet-500 to-fuchsia-500"></div>
-                  <span className="relative">Book my installation →</span>
-                </a>
+                  <div className="absolute inset-0 opacity-0 group-hover:opacity-100 bg-gradient-to-r from-fuchsia-500 via-violet-500 to-violet-600 transition-opacity duration-300"></div>
+                  <span className="relative flex items-center gap-2">
+                    Book my installation
+                    <IconArrowRight />
+                  </span>
+                </Link>
               </div>
 
               <p className="text-xs text-slate-500 mt-6">
-                $200 upfront · $299 after 7 days · Total $499
+                $100 upfront · $149 after 7 days · Total $249
               </p>
             </div>
           </div>
