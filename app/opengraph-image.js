@@ -13,177 +13,262 @@ export default async function Image() {
           height: '100%',
           width: '100%',
           display: 'flex',
-          flexDirection: 'column',
-          alignItems: 'flex-start',
-          justifyContent: 'center',
           background: '#05050c',
-          padding: '80px',
           position: 'relative',
           fontFamily: 'sans-serif',
+          overflow: 'hidden',
         }}
       >
-        {/* Gradient orbs */}
+        {/* ─── Background gradient orbs ─── */}
         <div
           style={{
             position: 'absolute',
-            top: '-200px',
-            right: '-200px',
-            width: '600px',
-            height: '600px',
-            background: 'radial-gradient(circle, rgba(139,92,246,0.4) 0%, transparent 70%)',
+            top: '-300px',
+            left: '-200px',
+            width: '800px',
+            height: '800px',
+            background: 'radial-gradient(circle, rgba(139,92,246,0.25) 0%, transparent 60%)',
             display: 'flex',
           }}
         />
         <div
           style={{
             position: 'absolute',
-            bottom: '-200px',
-            left: '-100px',
-            width: '500px',
-            height: '500px',
-            background: 'radial-gradient(circle, rgba(217,70,239,0.3) 0%, transparent 70%)',
+            bottom: '-300px',
+            right: '-100px',
+            width: '900px',
+            height: '900px',
+            background: 'radial-gradient(circle, rgba(217,70,239,0.35) 0%, transparent 60%)',
             display: 'flex',
           }}
         />
 
-        {/* Logo */}
+        {/* ─── Grid pattern ─── */}
         <div
           style={{
+            position: 'absolute',
+            inset: 0,
+            backgroundImage:
+              'linear-gradient(to right, rgba(255,255,255,0.035) 1px, transparent 1px), linear-gradient(to bottom, rgba(255,255,255,0.035) 1px, transparent 1px)',
+            backgroundSize: '64px 64px',
             display: 'flex',
-            alignItems: 'center',
-            gap: '16px',
-            marginBottom: '40px',
+          }}
+        />
+
+        {/* ─── Left side: Text content ─── */}
+        <div
+          style={{
+            flex: 1,
+            display: 'flex',
+            flexDirection: 'column',
+            justifyContent: 'center',
+            padding: '80px',
+            paddingRight: '40px',
+            position: 'relative',
+            zIndex: 2,
           }}
         >
+          {/* Logo */}
           <div
             style={{
-              width: '60px',
-              height: '60px',
-              borderRadius: '16px',
-              background: 'linear-gradient(135deg, #8b5cf6 0%, #d946ef 100%)',
               display: 'flex',
               alignItems: 'center',
-              justifyContent: 'center',
+              gap: '14px',
+              marginBottom: '48px',
             }}
           >
-            <svg
-              width="36"
-              height="36"
-              viewBox="0 0 24 24"
-              fill="none"
-              stroke="#ffffff"
-              strokeWidth="2.5"
-              strokeLinecap="round"
-              strokeLinejoin="round"
+            <div
+              style={{
+                width: '52px',
+                height: '52px',
+                borderRadius: '14px',
+                background: 'linear-gradient(135deg, #8b5cf6 0%, #d946ef 100%)',
+                display: 'flex',
+                alignItems: 'center',
+                justifyContent: 'center',
+                boxShadow: '0 0 40px rgba(139,92,246,0.5)',
+              }}
             >
-              <path d="M3 12h3l2-7 4 14 2-7h7" />
-            </svg>
+              <svg
+                width="32"
+                height="32"
+                viewBox="0 0 24 24"
+                fill="none"
+                stroke="#ffffff"
+                strokeWidth="2.5"
+                strokeLinecap="round"
+                strokeLinejoin="round"
+              >
+                <path d="M3 12h3l2-7 4 14 2-7h7" />
+              </svg>
+            </div>
+            <div
+              style={{
+                fontSize: '32px',
+                fontWeight: 'bold',
+                color: '#ffffff',
+                letterSpacing: '-0.02em',
+                display: 'flex',
+              }}
+            >
+              Retain
+              <span style={{ color: '#a78bfa' }}>Pulse</span>
+            </div>
+          </div>
+
+          {/* Headline */}
+          <div
+            style={{
+              fontSize: '72px',
+              fontWeight: 'bold',
+              color: '#ffffff',
+              lineHeight: '1.05',
+              letterSpacing: '-0.03em',
+              marginBottom: '8px',
+              display: 'flex',
+              flexDirection: 'column',
+            }}
+          >
+            <span>Stop losing</span>
+            <span>customers</span>
           </div>
           <div
             style={{
-              fontSize: '38px',
+              fontSize: '72px',
               fontWeight: 'bold',
-              color: '#ffffff',
-              letterSpacing: '-0.02em',
+              color: '#a78bfa',
+              lineHeight: '1.05',
+              letterSpacing: '-0.03em',
               display: 'flex',
             }}
           >
-            Retain
-            <span style={{ color: '#a78bfa' }}>Pulse</span>
+            silently.
+          </div>
+
+          {/* Badge */}
+          <div
+            style={{
+              display: 'flex',
+              alignItems: 'center',
+              gap: '10px',
+              padding: '10px 20px',
+              background: 'rgba(139,92,246,0.12)',
+              border: '1px solid rgba(139,92,246,0.35)',
+              borderRadius: '100px',
+              marginTop: '48px',
+              alignSelf: 'flex-start',
+            }}
+          >
+            <div
+              style={{
+                width: '8px',
+                height: '8px',
+                borderRadius: '50%',
+                background: '#a78bfa',
+                display: 'flex',
+              }}
+            />
+            <div
+              style={{
+                fontSize: '16px',
+                color: '#c4b5fd',
+                fontWeight: '600',
+                letterSpacing: '0.08em',
+                display: 'flex',
+              }}
+            >
+              FOUNDING MEMBERS · 5 SPOTS
+            </div>
           </div>
         </div>
 
-        {/* Headline */}
+        {/* ─── Right side: Big pulse graphic ─── */}
         <div
           style={{
-            fontSize: '76px',
-            fontWeight: 'bold',
-            color: '#ffffff',
-            lineHeight: '1.05',
-            letterSpacing: '-0.03em',
-            marginBottom: '24px',
-            display: 'flex',
-          }}
-        >
-          Stop losing customers
-        </div>
-        <div
-          style={{
-            fontSize: '76px',
-            fontWeight: 'bold',
-            color: '#a78bfa',
-            lineHeight: '1.05',
-            letterSpacing: '-0.03em',
-            marginBottom: '40px',
-            display: 'flex',
-          }}
-        >
-          silently.
-        </div>
-
-        {/* Subtitle */}
-        <div
-          style={{
-            fontSize: '32px',
-            color: '#94a3b8',
-            lineHeight: '1.4',
-            maxWidth: '900px',
-            display: 'flex',
-          }}
-        >
-          I install RetainPulse on your site in 48 hours — then manage it for 30 days.
-        </div>
-
-        {/* Bottom badge */}
-        <div
-          style={{
-            position: 'absolute',
-            bottom: '60px',
-            left: '80px',
+            width: '480px',
             display: 'flex',
             alignItems: 'center',
-            gap: '12px',
-            padding: '12px 24px',
-            background: 'rgba(139,92,246,0.15)',
-            border: '1px solid rgba(139,92,246,0.3)',
-            borderRadius: '100px',
+            justifyContent: 'center',
+            position: 'relative',
+            zIndex: 2,
+            paddingRight: '60px',
           }}
         >
+          {/* Glow behind pulse */}
           <div
             style={{
-              width: '10px',
-              height: '10px',
-              borderRadius: '50%',
-              background: '#a78bfa',
+              position: 'absolute',
+              width: '500px',
+              height: '500px',
+              background: 'radial-gradient(circle, rgba(139,92,246,0.45) 0%, transparent 65%)',
               display: 'flex',
             }}
           />
-          <div
-            style={{
-              fontSize: '20px',
-              color: '#c4b5fd',
-              fontWeight: '600',
-              letterSpacing: '0.05em',
-              display: 'flex',
-            }}
+
+          {/* Big pulse line */}
+          <svg
+            width="440"
+            height="200"
+            viewBox="0 0 440 200"
+            style={{ position: 'relative' }}
           >
-            FOUNDING MEMBERS · 5 SPOTS
-          </div>
+            <defs>
+              <linearGradient id="pulseGrad" x1="0%" y1="0%" x2="100%" y2="0%">
+                <stop offset="0%" stopColor="#8b5cf6" />
+                <stop offset="50%" stopColor="#a78bfa" />
+                <stop offset="100%" stopColor="#d946ef" />
+              </linearGradient>
+              <filter id="pulseGlow" x="-50%" y="-50%" width="200%" height="200%">
+                <feGaussianBlur stdDeviation="8" result="blur" />
+                <feMerge>
+                  <feMergeNode in="blur" />
+                  <feMergeNode in="SourceGraphic" />
+                </feMerge>
+              </filter>
+            </defs>
+            <path
+              d="M 10 100 L 90 100 L 130 30 L 180 170 L 220 60 L 260 130 L 300 100 L 430 100"
+              stroke="url(#pulseGrad)"
+              strokeWidth="8"
+              strokeLinecap="round"
+              strokeLinejoin="round"
+              fill="none"
+              filter="url(#pulseGlow)"
+            />
+          </svg>
         </div>
 
-        {/* URL */}
+        {/* ─── Bottom URL bar ─── */}
         <div
           style={{
             position: 'absolute',
-            bottom: '60px',
-            right: '80px',
-            fontSize: '24px',
-            color: '#64748b',
+            bottom: '40px',
+            left: '80px',
+            fontSize: '18px',
+            color: '#475569',
             fontWeight: '600',
+            letterSpacing: '0.05em',
             display: 'flex',
+            zIndex: 3,
           }}
         >
           retainpulse.pro
+        </div>
+
+        {/* ─── Bottom right: setup note ─── */}
+        <div
+          style={{
+            position: 'absolute',
+            bottom: '40px',
+            right: '60px',
+            fontSize: '16px',
+            color: '#64748b',
+            fontWeight: '500',
+            display: 'flex',
+            zIndex: 3,
+          }}
+        >
+          Installed in 48 hours
         </div>
       </div>
     ),
