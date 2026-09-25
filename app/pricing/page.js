@@ -30,14 +30,6 @@ const IconSpark = () => (
 export default function PricingPage() {
   const [showOfferDetails, setShowOfferDetails] = useState(false);
 
-  const bookInstallation = () => {
-    const subject = encodeURIComponent('RetainPulse — Book my installation');
-    const body = encodeURIComponent(
-      `Hi,\n\nI'm interested in the RetainPulse Founding Member offer.\n\nMy SaaS:\nMy MRR range:\nMy cancellation flow today:\n\nThanks!`
-    );
-    window.location.href = `mailto:RetainPulse+akamss001@gmail.com?subject=${subject}&body=${body}`;
-  };
-
   return (
     <div className="relative min-h-screen bg-[#05050c] text-white font-sans antialiased overflow-x-hidden">
 
@@ -145,15 +137,15 @@ export default function PricingPage() {
             </ul>
 
             {/* CTA */}
-            <button
-              onClick={bookInstallation}
+            <Link
+              href="/book"
               className="group w-full py-4 rounded-2xl font-semibold text-sm bg-gradient-to-r from-violet-600 via-violet-500 to-fuchsia-500 text-white shadow-lg shadow-violet-500/30 hover:shadow-violet-500/50 hover:scale-[1.01] transition-all duration-200 flex items-center justify-center gap-2"
             >
               <span>Book my installation</span>
               <span className="transition-transform group-hover:translate-x-1">
                 <IconArrowRight />
               </span>
-            </button>
+            </Link>
 
             <p className="text-xs text-slate-500 text-center mt-4">
               Only 5 spots at this price. After that, full price returns.
@@ -260,13 +252,13 @@ export default function PricingPage() {
 
         {/* Bottom CTA */}
         <div className="mt-12 text-center">
-          <button
-            onClick={bookInstallation}
+          <Link
+            href="/book"
             className="inline-flex items-center gap-2 px-6 py-3 rounded-xl text-sm font-semibold bg-white/[0.05] text-white border border-white/[0.08] hover:bg-white/[0.08] hover:border-white/[0.15] transition-all"
           >
             <span>Book my installation</span>
             <IconArrowRight />
-          </button>
+          </Link>
           <p className="text-xs text-slate-500 mt-3">
             Or DM me on X: <span className="text-slate-400">@Retainpulse</span>
           </p>
